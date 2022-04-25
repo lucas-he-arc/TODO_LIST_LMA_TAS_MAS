@@ -4,8 +4,7 @@ void main() => runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         brightness: Brightness.dark,
-        primaryColor: Colors.red,
-        accentColor: Colors.blue),
+        primaryColor: Colors.red),
     home: AppTODO(),
   ));
 
@@ -17,10 +16,63 @@ class AppTODO extends StatefulWidget {
 }
 
 class _AppTODOState extends State<AppTODO> {
+
+  List todos = [];
+  String input = "";
+
+  @override
+  void initState() {
+    super.initState();
+    todos.add("item1");
+    todos.add("item2");
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Mes TODOs")),
-    );
+      appBar: AppBar(
+        title: Text("Mes TODOs")
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed:(){
+          showDialog(
+              context: context,
+              builder: (BuildContext context){
+                return AlertDialog(
+                  title: Text("Add"),
+                  content: TextField(
+                    onChanged: (String value){
+                      input = value;
+                    },
+                  ),
+                  actions: <Widget>[
+                    TextButton(
+                        onPressed: (){
+                          setState((){
+                            todos.add(input);
+                          });
+                        },
+                        child: Text("Ajouter"))
+                  ],
+                );
+          });
+        },
+        child: Icon(
+          Icons.add,
+          color: Colors.red,
+        ),
+      ),
+      body: ListView.builder(
+          itemCount : todos.length,
+          itemBuilder: (BuildContext context, int index) {
+            return Dismissible(
+                key: Key(todos[index]),
+                child: Card(
+                  child: ListTile(
+                    title: Text(todos[index]),
+                  ),
+                ));
+          }),
+      );
   }
 }
