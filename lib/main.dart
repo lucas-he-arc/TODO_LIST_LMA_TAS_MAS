@@ -51,10 +51,12 @@ class _AppTODOState extends State<AppTODO> {
                           setState((){
                             todos.add(input);
                           });
+                          Navigator.of(context).pop();
                         },
                         child: Text("Ajouter"))
                   ],
                 );
+
           });
         },
         child: Icon(
@@ -70,6 +72,17 @@ class _AppTODOState extends State<AppTODO> {
                 child: Card(
                   child: ListTile(
                     title: Text(todos[index]),
+                    trailing: IconButton(
+                      icon: Icon(
+                        Icons.delete,
+                        color:Colors.red,
+                      ),
+                      onPressed: (){
+                        setState(() {
+                          todos.removeAt(index);
+                        });
+                      }
+                    ),
                   ),
                 ));
           }),
