@@ -1,3 +1,4 @@
+import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() => runApp(MaterialApp(
@@ -5,8 +6,25 @@ void main() => runApp(MaterialApp(
       theme: ThemeData(
         brightness: Brightness.dark,
         primaryColor: Colors.red),
-    home: AppTODO(),
+    home: const SplashScreen(),
   ));
+
+class SplashScreen extends StatelessWidget {
+  const SplashScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedSplashScreen(splash: Column(
+      children: [
+        Image.asset('assets/loader.png'),
+        const Text('MyApp', style: TextStyle(fontSize: 40, fontWeight: FontWeight.bold, color: Colors.blueAccent))
+      ]
+    ),
+        backgroundColor: Colors.tealAccent,
+        nextScreen: AppTODO());
+  }
+}
+
 
 class AppTODO extends StatefulWidget {
   const AppTODO({Key? key}) : super(key: key);
