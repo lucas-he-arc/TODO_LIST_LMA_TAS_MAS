@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
+import 'dart:async';                                          //Import LMA - Firebase
+import 'package:cloud_firestore/cloud_firestore.dart';        //Import LMA - Firebase
+import 'package:firebase_core/firebase_core.dart';            //Import LMA - Firebase
+import 'package:flutter/material.dart';                       //Import LMA - Firebase
+import 'package:provider/provider.dart';                      //Import LMA - Firebase
+import 'firebase_options.dart';                               //Import LMA - Firebase
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  //intialisation Firebase
+  await Firebase.initializeApp();
   runApp(const MyApp());
 }
 
@@ -112,4 +121,9 @@ class _MyHomePageState extends State<MyHomePage> {
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }
+
+  //LMA-TEST Firebase - start
+  //LMA-TEST Firebase - end
+
+
 }
