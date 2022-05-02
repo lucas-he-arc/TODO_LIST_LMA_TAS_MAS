@@ -20,6 +20,8 @@ class _AppTODOState extends State<AppTODO> {
   List todos = [];
   String input = "";
 
+  static List<String> todoName = ["todo1","todo2","todo3"];
+
   @override
   void initState() {
     super.initState();
@@ -83,6 +85,9 @@ class _AppTODOState extends State<AppTODO> {
                         });
                       }
                     ),
+                    onTap: (){
+                      print("toucnee");
+                    },
                   ),
                 ));
           }),
