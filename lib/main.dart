@@ -39,7 +39,8 @@ class AppTODO extends StatefulWidget {
 class _AppTODOState extends State<AppTODO> {
 
   List todos = [];
-  String input = "";
+  String nomTodo = "";
+  String descTodo = "";
 
   @override
   void initState() {
@@ -50,12 +51,12 @@ class _AppTODOState extends State<AppTODO> {
 
   createTodos(){
     DocumentReference documentReference =
-    FirebaseFirestore.instance.collection("MesTodos").doc(input);
+    FirebaseFirestore.instance.collection("MesTodos").doc(nomTodo);
 
     //map
-    Map<String,String> todos = {"TodoTitle" : input};
+    Map<String,String> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo};
 
-    documentReference.set(todos).whenComplete(() => print("$input created"));
+    documentReference.set(todos).whenComplete(() => print("$nomTodo created"));
   }
 
   @override
@@ -71,23 +72,24 @@ class _AppTODOState extends State<AppTODO> {
               builder: (BuildContext context){
                 return AlertDialog(
                   title: Text("Add"),
-                  /*content: TextField(
-                    onChanged: (String value){
-                      input = value;
-                    },
-                  ),*/
-                  content: TextField(
-                    onChanged: (String value){
-                      input = value;
-                    },
-                  ),
+                  content: Form(child: Column(
+                    children: [
+                      TextField(
+                        onChanged: (String value){
+                          nomTodo = value;
+                        },
+                      ),
+                      TextField(
+                        onChanged: (String value){
+                          descTodo = value;
+                        },
+                      )
+                    ],
+                  ),),
                   actions: <Widget>[
                     TextButton(
                         onPressed: (){
                           createTodos();
-                          /*SetState((){
-                            todoData.add(input);
-                          });*/
                           Navigator.of(context).pop();
                         },
                         child: Text("Ajouter"))
@@ -101,31 +103,47 @@ class _AppTODOState extends State<AppTODO> {
           color: Colors.red,
         ),
       ),
-      body: ListView.builder(
-          itemCount : todoData.length,
-          itemBuilder: (BuildContext context, int index) {
-            return Dismissible(
-                key: Key(todoName[index]),
-                child: Card(
-                  child: ListTile(
-                    title: Text(todoName[index]),
+      body: StreamBuilder(
+          stream: FirebaseFirestore.instance.collection('MesTodos').snapshots()
+          , builder: (context, AsyncSnapshot snapshots){
+        if(snapshots.hasData){
+          return ListView.builder(
+              itemCount : snapshots.data?.docs.length,
+              itemBuilder: (context, index) {
+                DocumentSnapshot documentSnapshot = snapshots.data.docs[index];
+
+                //TodoDetail
+
+                List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
+                TodoDataModel(documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"]));
+
+                return ListTile(
+                    title: Text (documentSnapshot["TodoTitle"]),
                     trailing: IconButton(
-                      icon: Icon(
-                        Icons.delete,
-                        color:Colors.red,
-                      ),
-                      onPressed: (){
-                        setState(() {
-                          todoData.removeAt(index);
-                        });
-                      }
+                        icon: Icon(
+                          Icons.delete,
+                          color:Colors.red,
+                        ),
+                        onPressed: (){
+                          setState(() {
+                            //todos.removeAt(index);
+                            //todo le remove avec la firebase
+                          });
+                        }
                     ),
                     onTap: (){
                       Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index])));
                     },
-                  ),
-                ));
-          }),
+                  );
+              });
+        }else{
+          return Text(
+            'No Data...',
+          );
+        }
+
+    }
+    ),
       );
   }
 }
