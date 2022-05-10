@@ -53,6 +53,37 @@ class _AppTODOState extends State<AppTODO> {
     Map<String,String> todos = {"TodoTitle" : input};
 
     documentReference.set(todos).whenComplete(() => print("$input created"));
+
+
+
+    final ref = FirebaseFirestore.instance.collection("MesTodos").snapshots().listen(
+      (res) => print("Successfully completed"),
+      onError: (e) => print("Error completing: $e"),
+    );
+
+    StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('MesTodos').snapshots(),
+      builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+        if (!snapshot.hasData) return new Text('Loading...');
+        return new ListView(
+          children: snapshot.data!.docs.map((DocumentSnapshot document) {
+            return new ListTile(
+              title: new Text(document['title']),
+              subtitle: new Text(document['author']),
+            );
+          }).toList(),
+        );
+      },
+    );
+
+    /*
+    Stream streamDoc = FirebaseFirestore.instance.collection("MesTodos").snapshots().listen(
+          (res) => print("Successfully completed"),
+      onError: (e) => print("Error completing: $e"),
+    );*/
+
+    //FirebaseFirestore.instance.collection("MesTodos").snapshots().listen(res);
+
   }
 
   @override
@@ -75,8 +106,9 @@ class _AppTODOState extends State<AppTODO> {
                   ),
                   actions: <Widget>[
                     TextButton(
-                        onPressed: (){
+                        onPressed: () {
                           createTodos();
+
                           Navigator.of(context).pop();
                         },
                         child: Text("Ajouter"))
@@ -90,28 +122,37 @@ class _AppTODOState extends State<AppTODO> {
           color: Colors.red,
         ),
       ),
-      body: ListView.builder(
-          itemCount : todos.length,
-          itemBuilder: (BuildContext context, int index) {
-            return Dismissible(
-                key: Key(todos[index]),
-                child: Card(
-                  child: ListTile(
-                    title: Text(todos[index]),
-                    trailing: IconButton(
-                      icon: Icon(
-                        Icons.delete,
-                        color:Colors.red,
-                      ),
-                      onPressed: (){
-                        setState(() {
-                          todos.removeAt(index);
-                        });
-                      }
-                    ),
-                  ),
-                ));
-          }),
+      body: StreamBuilder(
+          stream: FirebaseFirestore.instance.collection('MesTodos').snapshots()
+          , builder: (context, AsyncSnapshot snapshots){
+        if(snapshots.hasData){
+          return ListView.builder(
+              itemCount : snapshots.data?.docs.length,
+              itemBuilder: (context, index) {
+                DocumentSnapshot documentSnapshot = snapshots.data.docs[index];
+                return ListTile(
+                        title: Text (documentSnapshot["TodoTitle"]),
+                        trailing: IconButton(
+                            icon: Icon(
+                              Icons.delete,
+                              color:Colors.red,
+                            ),
+                            onPressed: (){
+                              setState(() {
+                                todos.removeAt(index);
+                              });
+                            }
+                        ),
+                      );
+              });
+        }else{
+          return Text(
+            'No Data...',
+          );
+        }
+
+    }
+    ),
       );
   }
 }
