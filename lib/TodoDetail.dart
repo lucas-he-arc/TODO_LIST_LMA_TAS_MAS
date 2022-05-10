@@ -4,21 +4,34 @@ import 'package:flutter/material.dart';
 class TodoDetail extends StatelessWidget {
 
   //String nomTodo = "";
-
   final TodoDataModel todoDataModel;
   //const TodoDetail({Key? key, required this.todoDataModel}) : super(key: key);
   const TodoDetail({Key? key, required this.todoDataModel}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+
+
+
     return Scaffold(
         appBar: AppBar(title: Text(todoDataModel.name),),
-        body: Column(
+        body: Container(
+          child: Column(
+            children: [
+              for(var v in todoDataModel.values.keys)Text(v.toString())
+            ],
+          ),
+        ),
+
+        /*Column(
           children: [
             Text(todoDataModel.name),
-            Text(todoDataModel.desc)
+            Text(todoDataModel.desc),
+            for(var v in todoDataModel.values)Text()
+
+
           ],
-        ),
+        ),*/
       floatingActionButton: FloatingActionButton(
         onPressed:(){
 
@@ -43,6 +56,7 @@ class TodoDetail extends StatelessWidget {
                     TextButton(
                         onPressed: (){
                           //createTodos();
+                          todoDataModel.values.putIfAbsent(nomTodo, () => false);
                           Navigator.of(context).pop();
                         },
                         child: Text("Ajouter"))

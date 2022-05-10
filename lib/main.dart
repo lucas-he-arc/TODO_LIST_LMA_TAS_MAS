@@ -86,16 +86,6 @@ class _AppTODOState extends State<AppTODO> {
                         },
                         decoration: InputDecoration(hintText: "Description"),
                       )
-                      /*TextField(
-                        onChanged: (String value){
-                          nomTodo = value;
-                        },
-                      ),
-                      TextField(
-                        onChanged: (String value){
-                          descTodo = value;
-                        },
-                      )*/
                     ],
                   ),),
                   actions: <Widget>[
@@ -122,8 +112,6 @@ class _AppTODOState extends State<AppTODO> {
               itemCount : snapshots.data?.docs.length,
               itemBuilder: (context, index) {
                 DocumentSnapshot documentSnapshot = snapshots.data.docs[index];
-
-                //TodoDetail
 
                 List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
                 TodoDataModel(documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"]));
