@@ -71,10 +71,22 @@ class _AppTODOState extends State<AppTODO> {
               context: context,
               builder: (BuildContext context){
                 return AlertDialog(
-                  title: Text("Add"),
+                  title: Text("Ajouter une TODO"),
                   content: Form(child: Column(
                     children: [
-                      TextField(
+                      TextFormField(
+                        onChanged: (String value){
+                          nomTodo = value;
+                        },
+                        decoration: InputDecoration(hintText: "Titre"),
+                      ),
+                      TextFormField(
+                        onChanged: (String value){
+                          descTodo = value;
+                        },
+                        decoration: InputDecoration(hintText: "Description"),
+                      )
+                      /*TextField(
                         onChanged: (String value){
                           nomTodo = value;
                         },
@@ -83,7 +95,7 @@ class _AppTODOState extends State<AppTODO> {
                         onChanged: (String value){
                           descTodo = value;
                         },
-                      )
+                      )*/
                     ],
                   ),),
                   actions: <Widget>[
@@ -95,7 +107,6 @@ class _AppTODOState extends State<AppTODO> {
                         child: Text("Ajouter"))
                   ],
                 );
-
           });
         },
         child: Icon(
