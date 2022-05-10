@@ -1,15 +1,33 @@
+import 'dart:html';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'dart:async';                                          //Import LMA - Firebase
+import 'package:cloud_firestore/cloud_firestore.dart';        //Import LMA - Firebase
+import 'package:firebase_core/firebase_core.dart';            //Import LMA - Firebase
+import 'package:flutter/material.dart';                       //Import LMA - Firebase
+import 'package:provider/provider.dart';                      //Import LMA - Firebase
+import 'firebase_options.dart';                               //Import LMA - Firebase
 import 'package:todo_list_lma_tas_mas/CheckBoxState.dart';
 import 'package:todo_list_lma_tas_mas/TodoDataModel.dart';
 import 'package:todo_list_lma_tas_mas/TodoDetail.dart';
 
-void main() => runApp(MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primaryColor: Colors.red),
+
+void main() async {
+  //intialisation Firebase
+  await Firebase.initializeApp(
+      options: FirebaseOptions(
+      apiKey: "AIzaSyBU0ITv2-yYH-qLXcT7rZXSs6fazPGP4uU",
+      appId: "1:535380240245:android:fc025dbf147f83d372d53c",
+      messagingSenderId: "535380240245",
+      projectId: "flutter-todolist-1683a",
+  ));
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    theme: ThemeData(brightness: Brightness.dark, primaryColor: Colors.red),
     home: AppTODO(),
   ));
+}
 
 class AppTODO extends StatefulWidget {
   const AppTODO({Key? key}) : super(key: key);
@@ -20,24 +38,25 @@ class AppTODO extends StatefulWidget {
 
 class _AppTODOState extends State<AppTODO> {
 
-  //List todos = [];
+  List todos = [];
   String input = "";
 
-  final TodoDataModel todoToAdd = TodoDataModel('','', false);
-
-  static List<String> todoName = ["todo1","todo2","todo3"];
-  static List<String> todoDescription = ["Description de la TODO 1","Description de la TODO 2","Description de la TODO 3"];
-  
-  final List<TodoDataModel> todoData = List.generate(
-      todoName.length,
-          (index) => TodoDataModel('${todoName[index]}', '${todoDescription[index]}', false));
-
-  /*@override
+  @override
   void initState() {
     super.initState();
     todos.add("item1");
     todos.add("item2");
-  }*/
+  }
+
+  createTodos(){
+    DocumentReference documentReference =
+    FirebaseFirestore.instance.collection("MesTodos").doc(input);
+
+    //map
+    Map<String,String> todos = {"TodoTitle" : input};
+
+    documentReference.set(todos).whenComplete(() => print("$input created"));
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -52,41 +71,23 @@ class _AppTODOState extends State<AppTODO> {
               builder: (BuildContext context){
                 return AlertDialog(
                   title: Text("Add"),
-                  content: Column(
-                    children: [
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Titre de la TODO',
-                        ),
-                        onChanged: (String value){
-                          todoToAdd.name = value;
-                          //input = value;
-                        },
-                      ),
-                      TextField(
-                        decoration: InputDecoration(
-                          labelText: 'Description de la TODO',
-                        ),
-                        onChanged: (String value){
-                          todoToAdd.desc = value;
-                          //input = value;
-                        },
-                      )
-                    ],
-                  ),
                   /*content: TextField(
                     onChanged: (String value){
                       input = value;
                     },
                   ),*/
+                  content: TextField(
+                    onChanged: (String value){
+                      input = value;
+                    },
+                  ),
                   actions: <Widget>[
                     TextButton(
                         onPressed: (){
-                          setState((){
-                            //todos.add(input);
-                            todoName.add(input);
-                            //todoData.add(todoToAdd);
-                          });
+                          createTodos();
+                          /*SetState((){
+                            todoData.add(input);
+                          });*/
                           Navigator.of(context).pop();
                         },
                         child: Text("Ajouter"))
