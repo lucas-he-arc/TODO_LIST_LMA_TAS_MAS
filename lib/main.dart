@@ -57,6 +57,12 @@ class _AppTODOState extends State<AppTODO> {
     Map<String,String> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo};
 
     documentReference.set(todos).whenComplete(() => print("$nomTodo created"));
+
+    Map<String, Map<String, bool>> taskMap = Map<String, Map<String, bool>>();
+
+    taskMap.putIfAbsent("listeTaches", () => Map<String, bool>());
+
+    documentReference.update(taskMap);
   }
 
   @override

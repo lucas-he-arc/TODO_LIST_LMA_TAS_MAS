@@ -1,18 +1,35 @@
+import 'dart:html';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:todo_list_lma_tas_mas/TodoDataModel.dart';
 import 'package:flutter/material.dart';
 
 class TodoDetail extends StatelessWidget {
 
-  //String nomTodo = "";
+  //String taskName = "";
   final TodoDataModel todoDataModel;
+
   //const TodoDetail({Key? key, required this.todoDataModel}) : super(key: key);
+  //
+  //const TodoDetail({Key? key, required this.todoDataModel}) : super(key: key);
+
   const TodoDetail({Key? key, required this.todoDataModel}) : super(key: key);
+
+  //map firebase
+  //Map<String,bool> tasks = {"TaskTitle" : taskName, "TododescTodo" : descTodo};
+  
+  addTask(String taskName){
+    DocumentReference documentReference =
+    FirebaseFirestore.instance.collection("MesTodos").doc(todoDataModel.name);
+
+    this.todoDataModel.values.putIfAbsent(taskName, () => false);
+
+    documentReference.set({"listeTaches": {taskName : false}}, SetOptions(merge: true));
+  }
 
   @override
   Widget build(BuildContext context) {
-
-
-
+    //TODO - Parcourir les items de la firebase
     return Scaffold(
         appBar: AppBar(title: Text(todoDataModel.name),),
         body: Container(
@@ -35,7 +52,7 @@ class TodoDetail extends StatelessWidget {
       floatingActionButton: FloatingActionButton(
         onPressed:(){
 
-          String nomTodo = "";
+          String taskName = "";
 
           showDialog(
               context: context,
@@ -46,7 +63,7 @@ class TodoDetail extends StatelessWidget {
                     children: [
                       TextFormField(
                         onChanged: (String value){
-                          nomTodo = value;
+                          taskName = value;
                         },
                         decoration: InputDecoration(hintText: "Titre"),
                       ),
@@ -56,7 +73,8 @@ class TodoDetail extends StatelessWidget {
                     TextButton(
                         onPressed: (){
                           //createTodos();
-                          todoDataModel.values.putIfAbsent(nomTodo, () => false);
+                          //todoDataModel.values.putIfAbsent(taskName, () => false);
+                          addTask(taskName);
                           Navigator.of(context).pop();
                         },
                         child: Text("Ajouter"))
