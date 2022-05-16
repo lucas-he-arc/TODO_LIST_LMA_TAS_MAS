@@ -41,6 +41,7 @@ class _AppTODOState extends State<AppTODO> {
   List todos = [];
   String nomTodo = "";
   String descTodo = "";
+  final db = FirebaseFirestore.instance.collection("MesTodos");
 
   @override
   void initState() {
@@ -51,7 +52,7 @@ class _AppTODOState extends State<AppTODO> {
 
   createTodos(){
     DocumentReference documentReference =
-    FirebaseFirestore.instance.collection("MesTodos").doc(nomTodo);
+    db.doc(nomTodo);
 
     //map
     Map<String,String> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo};
@@ -63,6 +64,10 @@ class _AppTODOState extends State<AppTODO> {
     taskMap.putIfAbsent("listeTaches", () => Map<String, bool>());
 
     documentReference.update(taskMap);
+  }
+
+  deleteTodos(String toDoToDelete){
+    db.doc(toDoToDelete).delete();
   }
 
   @override
@@ -111,7 +116,7 @@ class _AppTODOState extends State<AppTODO> {
         ),
       ),
       body: StreamBuilder(
-          stream: FirebaseFirestore.instance.collection('MesTodos').snapshots()
+          stream: db.snapshots()
           , builder: (context, AsyncSnapshot snapshots){
         if(snapshots.hasData){
           return ListView.builder(
