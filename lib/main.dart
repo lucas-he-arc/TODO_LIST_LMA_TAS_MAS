@@ -41,6 +41,7 @@ class _AppTODOState extends State<AppTODO> {
   List todos = [];
   String nomTodo = "";
   String descTodo = "";
+  final db = FirebaseFirestore.instance.collection("MesTodos");
 
   @override
   void initState() {
@@ -51,12 +52,18 @@ class _AppTODOState extends State<AppTODO> {
 
   createTodos(){
     DocumentReference documentReference =
-    FirebaseFirestore.instance.collection("MesTodos").doc(nomTodo);
+    db.doc(nomTodo);
 
     //map
     Map<String,String> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo};
 
     documentReference.set(todos).whenComplete(() => print("$nomTodo created"));
+    //Ajout de la sous-collection liste
+    //db.doc(nomTodo).collection("LISTE").add({"dhdhd",true});
+  }
+
+  deleteTodos(String toDoToDelete){
+    db.doc(toDoToDelete).delete();
   }
 
   @override
@@ -76,6 +83,7 @@ class _AppTODOState extends State<AppTODO> {
                     children: [
                       TextFormField(
                         onChanged: (String value){
+                          //TODO - vérifier que le nom entré ne correspond à aucune liste déja présente
                           nomTodo = value;
                         },
                         decoration: InputDecoration(hintText: "Titre"),
@@ -105,7 +113,7 @@ class _AppTODOState extends State<AppTODO> {
         ),
       ),
       body: StreamBuilder(
-          stream: FirebaseFirestore.instance.collection('MesTodos').snapshots()
+          stream: db.snapshots()
           , builder: (context, AsyncSnapshot snapshots){
         if(snapshots.hasData){
           return ListView.builder(
@@ -125,6 +133,7 @@ class _AppTODOState extends State<AppTODO> {
                         ),
                         onPressed: (){
                           setState(() {
+                            deleteTodos(documentSnapshot["TodoTitle"]);
                             //todos.removeAt(index);
                             //todo le remove avec la firebase
                           });
