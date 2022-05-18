@@ -2,6 +2,7 @@ import 'package:animated_splash_screen/animated_splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:lottie/lottie.dart';
 import 'package:page_transition/page_transition.dart';
+import 'package:flutter_hsvcolor_picker/flutter_hsvcolor_picker.dart';
 
 void main() => runApp(MaterialApp(
       debugShowCheckedModeBanner: false,
@@ -40,6 +41,7 @@ class _AppTODOState extends State<AppTODO> {
 
   List todos = [];
   String input = "";
+  Color _customColor = Colors.red;
 
   @override
   void initState() {
@@ -91,7 +93,7 @@ class _AppTODOState extends State<AppTODO> {
             return Dismissible(
                 key: Key(todos[index]),
                 child: Card(
-                  child: ListTile(
+/*                  child: ListTile(
                     title: Text(todos[index]),
                     trailing: IconButton(
                       icon: Icon(
@@ -104,9 +106,30 @@ class _AppTODOState extends State<AppTODO> {
                         });
                       }
                     ),
-                  ),
-                ));
-          }),
+                  ),*/
+                    child: Column(
+                      children: <Widget>[
+                        Container(
+                          width: 350,
+                          height: 150,
+                          child: const Center(
+                            child: Text('Color is : ' ),
+                          ),
+                          decoration: BoxDecoration(color : _customColor),
+                        ),
+                        ColorPicker(
+                            onChanged: (value) {
+                              setState(() {
+                                _customColor = value;
+                              });
+                            },
+                            color : Colors.red)
+                      ],
+                    ),
+                )
+            );
+          },
+      ),
       );
   }
 }
