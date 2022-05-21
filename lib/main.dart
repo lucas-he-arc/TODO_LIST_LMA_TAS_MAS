@@ -1,5 +1,6 @@
 import 'dart:html';
-
+import 'package:file_picker/file_picker.dart';
+import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';                                          //Import LMA - Firebase
@@ -11,6 +12,8 @@ import 'firebase_options.dart';                               //Import LMA - Fir
 import 'package:todo_list_lma_tas_mas/CheckBoxState.dart';
 import 'package:todo_list_lma_tas_mas/TodoDataModel.dart';
 import 'package:todo_list_lma_tas_mas/TodoDetail.dart';
+
+
 
 
 void main() async {
@@ -93,8 +96,114 @@ class _AppTODOState extends State<AppTODO> {
       appBar: AppBar(
         title: Text("Mes TODOs")
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed:(){
+      floatingActionButton: SpeedDial(
+        animatedIcon: AnimatedIcons.menu_close,
+        children: [
+          SpeedDialChild(
+            child: Icon(Icons.add),
+            label: ('Todo'),
+            onTap: () =>
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context){
+                    return AlertDialog(
+                      title: Text("Ajouter une TODO"),
+                      content: Form(child: Column(
+                        children: <Widget> [
+                          TextFormField(
+                            onChanged: (String value){
+                              nomTodo = value;
+                            },
+                            decoration: InputDecoration(hintText: "Titre"),
+                          ),
+                          TextFormField(
+                            onChanged: (String value){
+                              descTodo = value;
+                            },
+                            decoration: InputDecoration(hintText: "Description"),
+                          ),
+                          ElevatedButton(
+                            onPressed: () => _selectDate(context),
+                            child: Text("Choose Date"),
+                          ),
+                          Text("${dateTodo}".split(' ')[0]),
+                        ],
+                      ),),
+                      actions: <Widget>[
+                        TextButton(
+                            onPressed: (){
+                              createTodos();
+                              Navigator.of(context).pop();
+                            },
+                            child: Text("Ajouter"))
+                      ],
+                    );
+                  }
+                )
+          ),
+          SpeedDialChild(
+              child: Icon(Icons.add_a_photo),
+              label: ('Todo photo'),
+              onTap: () =>
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context){
+                        return AlertDialog(
+                          title: Text("Ajouter une TODO"),
+                          content: Form(child: Column(
+                            children: <Widget> [
+                              TextFormField(
+                                onChanged: (String value){
+                                  nomTodo = value;
+                                },
+                                decoration: InputDecoration(hintText: "Titre"),
+                              ),
+                              TextFormField(
+                                onChanged: (String value){
+                                  descTodo = value;
+                                },
+                                decoration: InputDecoration(hintText: "Description"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async {
+                                  final result = await FilePicker.platform.pickFiles(
+                                    allowMultiple: false,
+                                    type:FileType.custom,
+                                    allowedExtensions: ['png', 'jpg'],
+                                  );
+
+                                  if(result == null){
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      const SnackBar(
+                                          content:Text("Pas de fichier !")
+                                      ),
+                                    );
+                                    return null;
+                                  }
+
+                                  final path = result.files.single.path;
+                                  final fileName = result.files.single.name;
+                                },
+                                child: Text("Choisir une image"),
+                              ),
+                            ],
+                          ),),
+                          actions: <Widget>[
+                            TextButton(
+                                onPressed: (){
+                                  createTodos();
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text("Ajouter"))
+                          ],
+                        );
+                      }
+                  )
+          )
+        ],
+      ),
+      /*
+      onPressed:(){
           showDialog(
               context: context,
               builder: (BuildContext context){
@@ -114,11 +223,11 @@ class _AppTODOState extends State<AppTODO> {
                         },
                         decoration: InputDecoration(hintText: "Description"),
                       ),
-                      Text("${dateTodo}".split(' ')[0]),
                       ElevatedButton(
                         onPressed: () => _selectDate(context),
                         child: Text("Choose Date"),
-                      )
+                      ),
+                      Text("${dateTodo}".split(' ')[0]),
                     ],
                   ),),
                   actions: <Widget>[
@@ -136,7 +245,9 @@ class _AppTODOState extends State<AppTODO> {
           Icons.add,
           color: Colors.red,
         ),
-      ),
+       */
+
+
       body: StreamBuilder(
           stream: db.snapshots()
           , builder: (context, AsyncSnapshot snapshots){
@@ -153,7 +264,7 @@ class _AppTODOState extends State<AppTODO> {
                     width: 50,
                     height: 100,
                     child :Card(
-                      color: Colors.blue[100],
+                      color: Colors.green[200],
                       child:InkWell(
                         onTap: (){
                           Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index])));
@@ -162,7 +273,19 @@ class _AppTODOState extends State<AppTODO> {
                             children: <Widget>[
                               ListTile(
                                   title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
-                                  subtitle: Text(documentSnapshot["TodoData"]),
+                                  subtitle: Text((documentSnapshot["TodoData"].toDate().toString())),
+                                trailing: IconButton(
+                                    icon: Icon(
+                                      Icons.delete,
+                                    ),
+                                    onPressed: (){
+                                      setState(() {
+                                        //todos.removeAt(index);
+                                        //todo le remove avec la firebase
+                                        deleteTodos(documentSnapshot["TodoTitle"]);
+                                      });
+                                    }
+                                ),
                               )
                             ]
                         )
