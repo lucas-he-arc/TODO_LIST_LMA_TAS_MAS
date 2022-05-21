@@ -41,6 +41,7 @@ class _AppTODOState extends State<AppTODO> {
   List todos = [];
   String nomTodo = "";
   String descTodo = "";
+  DateTime dateTodo = DateTime.now();
   final db = FirebaseFirestore.instance.collection("MesTodos");
 
   @override
@@ -50,12 +51,28 @@ class _AppTODOState extends State<AppTODO> {
     todos.add("item2");
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? selected = await showDatePicker(
+      context: context,
+      initialDate: dateTodo,
+      firstDate: DateTime(2010),
+      lastDate: DateTime(2025),
+    );
+
+
+
+    if (selected != null) { // && selected != dateTodo
+      dateTodo = selected;
+      print(dateTodo);
+    }
+  }
+
   createTodos(){
     DocumentReference documentReference =
     db.doc(nomTodo);
 
     //map
-    Map<String,String> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo};
+    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoData" : dateTodo};
 
     documentReference.set(todos).whenComplete(() => print("$nomTodo created"));
 
@@ -84,7 +101,7 @@ class _AppTODOState extends State<AppTODO> {
                 return AlertDialog(
                   title: Text("Ajouter une TODO"),
                   content: Form(child: Column(
-                    children: [
+                    children: <Widget> [
                       TextFormField(
                         onChanged: (String value){
                           nomTodo = value;
@@ -96,6 +113,11 @@ class _AppTODOState extends State<AppTODO> {
                           descTodo = value;
                         },
                         decoration: InputDecoration(hintText: "Description"),
+                      ),
+                      Text("${dateTodo}".split(' ')[0]),
+                      ElevatedButton(
+                        onPressed: () => _selectDate(context),
+                        child: Text("Choose Date"),
                       )
                     ],
                   ),),
@@ -125,9 +147,31 @@ class _AppTODOState extends State<AppTODO> {
                 DocumentSnapshot documentSnapshot = snapshots.data.docs[index];
 
                 List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
-                TodoDataModel(documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"]));
+                    TodoDataModel(documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"]));
 
-                return ListTile(
+                return SizedBox (
+                    width: 50,
+                    height: 100,
+                    child :Card(
+                      color: Colors.blue[100],
+                      child:InkWell(
+                        onTap: (){
+                          Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index])));
+                        },
+                        child: Column(
+                            children: <Widget>[
+                              ListTile(
+                                  title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
+                                  subtitle: Text(documentSnapshot["TodoData"]),
+                              )
+                            ]
+                        )
+                    )
+                    )
+                );
+
+
+                /* ListTile(
                     title: Text (documentSnapshot["TodoTitle"]),
                     trailing: IconButton(
                         icon: Icon(
@@ -144,9 +188,9 @@ class _AppTODOState extends State<AppTODO> {
                     onTap: (){
                       Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index])));
                     },
-                  );
+                  );*/
               });
-        }else{
+          }else{
           return Text(
             'No Data...',
           );
