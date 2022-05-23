@@ -87,7 +87,7 @@ class _AppTODOState extends State<AppTODO> {
     taskMap.putIfAbsent("listeTaches", () => Map<String, bool>());
 
     documentReference.update(taskMap);
-    
+
      */
   }
 
@@ -214,6 +214,7 @@ class _AppTODOState extends State<AppTODO> {
                                       .uploadFile(path, fileName)
                                       .then((value) => print('Image ajoutée'));
 
+                                  fileName = "";
                                 },
                                 child: Text("Choisir une image"),
                               ),
@@ -259,6 +260,7 @@ class _AppTODOState extends State<AppTODO> {
                         },
                         child: Column(
                             children: <Widget>[
+                              //TODO condition pour afficher les todos sans images
                               FutureBuilder(
                                 future: storage.getImageURL(documentSnapshot["TodoImage"]),
                                 builder: (BuildContext context, AsyncSnapshot<String> snapshot){
