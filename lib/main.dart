@@ -8,6 +8,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';        //Import LMA - Fir
 import 'package:firebase_core/firebase_core.dart';            //Import LMA - Firebase
 import 'package:flutter/material.dart';                       //Import LMA - Firebase
 import 'package:provider/provider.dart';                      //Import LMA - Firebase
+import 'package:todo_list_lma_tas_mas/storage_service.dart';
 import 'firebase_options.dart';                               //Import LMA - Firebase
 import 'package:todo_list_lma_tas_mas/CheckBoxState.dart';
 import 'package:todo_list_lma_tas_mas/TodoDataModel.dart';
@@ -47,6 +48,7 @@ class _AppTODOState extends State<AppTODO> {
   List todos = [];
   String nomTodo = "";
   String descTodo = "";
+  String fileName = "";
   DateTime dateTodo = DateTime.now();
   final db = FirebaseFirestore.instance.collection("MesTodos");
 
@@ -65,8 +67,6 @@ class _AppTODOState extends State<AppTODO> {
       lastDate: DateTime(2025),
     );
 
-
-
     if (selected != null) { // && selected != dateTodo
       dateTodo = selected;
       print(dateTodo);
@@ -74,11 +74,29 @@ class _AppTODOState extends State<AppTODO> {
   }
 
   createTodos(){
-    DocumentReference documentReference =
-    db.doc(nomTodo);
+
 
     //map
-    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoData" : dateTodo};
+    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName};
+    db.add(todos);
+
+    //documentReference.set(todos).whenComplete(() => print("$nomTodo created"));
+    /*
+    Map<String, Map<String, bool>> taskMap = Map<String, Map<String, bool>>();
+
+    taskMap.putIfAbsent("listeTaches", () => Map<String, bool>());
+
+    documentReference.update(taskMap);
+    
+     */
+  }
+
+  createTodosWithPicture(){
+    Map<String,Object> todosImage = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName};
+    db.add(todosImage);
+    /*
+    //map
+    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoData" : dateTodo, "TodoImage" : fileName};
 
     documentReference.set(todos).whenComplete(() => print("$nomTodo created"));
 
@@ -87,7 +105,11 @@ class _AppTODOState extends State<AppTODO> {
     taskMap.putIfAbsent("listeTaches", () => Map<String, bool>());
 
     documentReference.update(taskMap);
+    */
+
   }
+
+
 
   deleteTodos(String toDoToDelete){
     db.doc(toDoToDelete).delete();
@@ -95,6 +117,7 @@ class _AppTODOState extends State<AppTODO> {
 
   @override
   Widget build(BuildContext context) {
+    final Storage storage = Storage();
     return Scaffold(
       appBar: AppBar(
         title: Text("Mes TODOs")
@@ -184,9 +207,12 @@ class _AppTODOState extends State<AppTODO> {
                                     return null;
                                   }
 
-                                  final path = result.files.single.path;
-                                  final fileName = result.files.single.name;
-                                  print("Image choisie");
+                                  final path = result.files.single.path!;
+                                  fileName = result.files.single.name;
+                                  
+                                  storage
+                                      .uploadFile(path, fileName)
+                                      .then((value) => print('Image ajoutée'));
 
                                 },
                                 child: Text("Choisir une image"),
@@ -196,7 +222,7 @@ class _AppTODOState extends State<AppTODO> {
                           actions: <Widget>[
                             TextButton(
                                 onPressed: (){
-                                  createTodos();
+                                  createTodosWithPicture();
                                   Navigator.of(context).pop();
                                 },
                                 child: Text("Ajouter"))
@@ -207,67 +233,24 @@ class _AppTODOState extends State<AppTODO> {
           )
         ],
       ),
-      /*
-      onPressed:(){
-          showDialog(
-              context: context,
-              builder: (BuildContext context){
-                return AlertDialog(
-                  title: Text("Ajouter une TODO"),
-                  content: Form(child: Column(
-                    children: <Widget> [
-                      TextFormField(
-                        onChanged: (String value){
-                          nomTodo = value;
-                        },
-                        decoration: InputDecoration(hintText: "Titre"),
-                      ),
-                      TextFormField(
-                        onChanged: (String value){
-                          descTodo = value;
-                        },
-                        decoration: InputDecoration(hintText: "Description"),
-                      ),
-                      ElevatedButton(
-                        onPressed: () => _selectDate(context),
-                        child: Text("Choose Date"),
-                      ),
-                      Text("${dateTodo}".split(' ')[0]),
-                    ],
-                  ),),
-                  actions: <Widget>[
-                    TextButton(
-                        onPressed: (){
-                          createTodos();
-                          Navigator.of(context).pop();
-                        },
-                        child: Text("Ajouter"))
-                  ],
-                );
-          });
-        },
-        child: Icon(
-          Icons.add,
-          color: Colors.red,
-        ),
-       */
-
 
       body: StreamBuilder(
-          stream: db.snapshots()
-          , builder: (context, AsyncSnapshot snapshots){
+          stream: db.snapshots(),
+          builder: (context, AsyncSnapshot snapshots){
         if(snapshots.hasData){
           return ListView.builder(
               itemCount : snapshots.data?.docs.length,
               itemBuilder: (context, index) {
                 DocumentSnapshot documentSnapshot = snapshots.data.docs[index];
 
+                String id = documentSnapshot.reference.id;
+
                 List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
-                    TodoDataModel(documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"]));
+                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"]));
 
                 return SizedBox (
                     width: 50,
-                    height: 100,
+                    height: 280,
                     child :Card(
                       color: Colors.green[200],
                       child:InkWell(
@@ -276,9 +259,22 @@ class _AppTODOState extends State<AppTODO> {
                         },
                         child: Column(
                             children: <Widget>[
+                              FutureBuilder(
+                                future: storage.getImageURL(documentSnapshot["TodoImage"]),
+                                builder: (BuildContext context, AsyncSnapshot<String> snapshot){
+                                  return Container(
+                                    width: 500,
+                                    height: 200,
+                                    child: Image.network(
+                                      snapshot.data!,
+                                      fit: BoxFit.cover,
+                                    ),
+                                  );
+                                }
+                              ),
                               ListTile(
                                   title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
-                                  subtitle: Text((documentSnapshot["TodoData"].toDate().toString())),
+                                  subtitle: Text((documentSnapshot["TodoDate"].toDate().toString())),
                                 trailing: IconButton(
                                     icon: Icon(
                                       Icons.delete,
@@ -287,7 +283,7 @@ class _AppTODOState extends State<AppTODO> {
                                       setState(() {
                                         //todos.removeAt(index);
                                         //todo le remove avec la firebase
-                                        deleteTodos(documentSnapshot["TodoTitle"]);
+                                        deleteTodos(id);
                                       });
                                     }
                                 ),
@@ -298,25 +294,6 @@ class _AppTODOState extends State<AppTODO> {
                     )
                 );
 
-
-                /* ListTile(
-                    title: Text (documentSnapshot["TodoTitle"]),
-                    trailing: IconButton(
-                        icon: Icon(
-                          Icons.delete,
-                          color:Colors.red,
-                        ),
-                        onPressed: (){
-                          setState(() {
-                            //todos.removeAt(index);
-                            //todo le remove avec la firebase
-                          });
-                        }
-                    ),
-                    onTap: (){
-                      Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index])));
-                    },
-                  );*/
               });
           }else{
           return Text(
