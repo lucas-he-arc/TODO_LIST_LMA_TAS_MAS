@@ -1,4 +1,4 @@
-import 'dart:html';
+//import 'dart:html';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +17,7 @@ import 'package:todo_list_lma_tas_mas/TodoDetail.dart';
 
 
 void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
   //intialisation Firebase
   await Firebase.initializeApp(
       options: FirebaseOptions(
@@ -24,6 +25,7 @@ void main() async {
       appId: "1:535380240245:android:fc025dbf147f83d372d53c",
       messagingSenderId: "535380240245",
       projectId: "flutter-todolist-1683a",
+      storageBucket: "gs://flutter-todolist-1683a.appspot.com"
   ));
   runApp(MaterialApp(
     debugShowCheckedModeBanner: false,
@@ -41,6 +43,7 @@ class AppTODO extends StatefulWidget {
 
 class _AppTODOState extends State<AppTODO> {
 
+  var storage = FirebaseFirestore.instance;
   List todos = [];
   String nomTodo = "";
   String descTodo = "";
@@ -183,6 +186,8 @@ class _AppTODOState extends State<AppTODO> {
 
                                   final path = result.files.single.path;
                                   final fileName = result.files.single.name;
+                                  print("Image choisie");
+
                                 },
                                 child: Text("Choisir une image"),
                               ),
