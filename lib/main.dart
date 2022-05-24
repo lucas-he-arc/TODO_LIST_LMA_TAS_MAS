@@ -49,6 +49,7 @@ class _AppTODOState extends State<AppTODO> {
   String nomTodo = "";
   String descTodo = "";
   String fileName = "";
+  String colorTodo = "0xFF3dff5a";
   DateTime dateTodo = DateTime.now();
   final db = FirebaseFirestore.instance.collection("MesTodos");
 
@@ -75,7 +76,7 @@ class _AppTODOState extends State<AppTODO> {
 
   createTodos(){
     //map
-    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName};
+    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo};
     db.add(todos);
 
     //documentReference.set(todos).whenComplete(() => print("$nomTodo created"));
@@ -90,13 +91,10 @@ class _AppTODOState extends State<AppTODO> {
   }
 
   createTodosWithPicture(){
-    Map<String,Object> todosImage = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName};
-    db.add(todosImage);
+    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo};
+    db.add(todos);
     fileName = "";
-
   }
-
-
 
   deleteTodos(String toDoToDelete){
     db.doc(toDoToDelete).delete();
@@ -235,15 +233,21 @@ class _AppTODOState extends State<AppTODO> {
                 String id = documentSnapshot.reference.id;
 
                 List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
-                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"]));
+                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"]));
+
+                //Color colorAAfficher = Color(int.parse(documentSnapshot["TodoColor"]));
+
+                String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
+
+                print(couleurString);
 
                 return SizedBox (
                     width: 50,
                     child :Card(
-                      color: Colors.green[200],
+                      color: Color(int.parse(couleurString)),
                       child:InkWell(
                         onTap: (){
-                          Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index])));
+                          Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index],couleurChoisie: documentSnapshot["TodoColor"])));
                         },
                         child: Column(
                             children: <Widget>[

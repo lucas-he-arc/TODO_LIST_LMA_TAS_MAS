@@ -1,6 +1,7 @@
 //import 'dart:html';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_hsvcolor_picker/flutter_hsvcolor_picker.dart';
 import 'package:todo_list_lma_tas_mas/TodoDataModel.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list_lma_tas_mas/storage_service.dart';
@@ -9,15 +10,19 @@ class TodoDetail extends StatelessWidget {
   //String taskName = "";
   final TodoDataModel todoDataModel;
 
-  const TodoDetail({Key? key, required this.todoDataModel}) : super(key: key);
+  String couleurChoisie;
+
+  TodoDetail({Key? key, required this.todoDataModel, required this.couleurChoisie}) : super(key: key);
 
   //map firebase
   //Map<String,bool> tasks = {"TaskTitle" : taskName, "TododescTodo" : descTodo};
 
-
   updateTodo(String newDescription){
     FirebaseFirestore.instance.collection("MesTodos").doc(todoDataModel.id).update({"TododescTodo" : newDescription});
-    print(newDescription);
+    //FirebaseFirestore.instance.collection("MesTodos").doc(todoDataModel.id).update({"TodoColor" : couleurChoisie});
+    //todoDataModel.color = couleurChoisie;
+    print(couleurChoisie);
+    //print(newDescription);
   }
 
   addTask(String taskName){
@@ -31,6 +36,7 @@ class TodoDetail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+
     var docRef = FirebaseFirestore.instance
         .collection('MesTodos').doc(todoDataModel.id);
 
@@ -47,9 +53,10 @@ class TodoDetail extends StatelessWidget {
           builder: (context, snapshot) {
             final Storage storage = Storage();
             if (!snapshot.hasData) {
-              return new Text("Loading");
+              return Text("Loading");
             }
-              return new Container(
+              return Container(
+                color: Color(int.parse(todoDataModel.color)),
                 child: Column(
                   children: <Widget>[
                     FutureBuilder(
@@ -81,7 +88,15 @@ class TodoDetail extends StatelessWidget {
                       onChanged: (String value){
                       newDescription = value;
                     },
-            )
+                    ),
+                    IconButton(
+                        icon: Icon(
+                          Icons.color_lens,
+                        ),
+                        onPressed: () {
+                          pickColor(context);
+                        },
+                      ),
             ]
               ));
           },
@@ -93,47 +108,48 @@ class TodoDetail extends StatelessWidget {
 
       ),
     );
-
-    //-------------
-    floatingActionButton:
-    FloatingActionButton(
-      onPressed: () {
-        String taskName = "";
-
-        showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: Text("Ajouter une TODO"),
-                content: Form(child: Column(
-                  children: [
-                    TextFormField(
-                      onChanged: (String value) {
-                        taskName = value;
-                      },
-                      decoration: InputDecoration(hintText: "Titre"),
-                    ),
-                  ],
-                ),),
-                actions: <Widget>[
-                  TextButton(
-                      onPressed: () {
-                        //createTodos();
-                        //todoDataModel.values.putIfAbsent(taskName, () => false);
-                        addTask(taskName);
-                        Navigator.of(context).pop();
-                      },
-                      child: Text("Ajouter"))
-                ],
-              );
-            });
-      },
-      child: Icon(
-        Icons.add,
-        color: Colors.red,
-      ),
-    )
-    ;
   }
 
+  //void buildColorPicker() => ColorPicker(onChanged: onChanged)
+void pickColor(BuildContext context) => showDialog(
+    context: context,
+    builder: (context) => AlertDialog(
+      content: Container(
+          width: 200.0,
+          height: 550.0,
+          child:Column(
+              children: <Widget>[
+                buildColorPicker(),
+                TextButton(
+                    onPressed: (){
+                      changeColorOfCard();
+                      Navigator.of(context).pop();
+                    },
+                    child: Text("Ajouter")
+                )
+              ]
+          )
+
+
+
+        /*mainAxisSize: MainAxisSize.min,
+        children: [
+          buildColorPicker()
+        ],*/
+      ),
+    ));
+
+  Widget buildColorPicker() => ColorPicker(
+    onChanged: (value) {
+      //couleurChoisie = value.toString();
+      var splitted = value.toString().split('(');
+      couleurChoisie = splitted[1].substring(0, splitted[1].length - 1);
+    },
+  );
+
+  void changeColorOfCard() {
+    //FirebaseFirestore.instance.collection("MesTodos").doc(todoDataModel.id).update({"TodoColor" : couleurChoisie});
+    FirebaseFirestore.instance.collection("MesTodos").doc(todoDataModel.id).update({"TodoColor" : couleurChoisie});
+    todoDataModel.color = couleurChoisie;
+  }
 }
