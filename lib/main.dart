@@ -74,8 +74,6 @@ class _AppTODOState extends State<AppTODO> {
   }
 
   createTodos(){
-
-
     //map
     Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName};
     db.add(todos);
@@ -94,18 +92,7 @@ class _AppTODOState extends State<AppTODO> {
   createTodosWithPicture(){
     Map<String,Object> todosImage = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName};
     db.add(todosImage);
-    /*
-    //map
-    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoData" : dateTodo, "TodoImage" : fileName};
-
-    documentReference.set(todos).whenComplete(() => print("$nomTodo created"));
-
-    Map<String, Map<String, bool>> taskMap = Map<String, Map<String, bool>>();
-
-    taskMap.putIfAbsent("listeTaches", () => Map<String, bool>());
-
-    documentReference.update(taskMap);
-    */
+    fileName = "";
 
   }
 
@@ -214,7 +201,7 @@ class _AppTODOState extends State<AppTODO> {
                                       .uploadFile(path, fileName)
                                       .then((value) => print('Image ajoutée'));
 
-                                  fileName = "";
+
                                 },
                                 child: Text("Choisir une image"),
                               ),
@@ -224,6 +211,7 @@ class _AppTODOState extends State<AppTODO> {
                             TextButton(
                                 onPressed: (){
                                   createTodosWithPicture();
+
                                   Navigator.of(context).pop();
                                 },
                                 child: Text("Ajouter"))
@@ -251,7 +239,6 @@ class _AppTODOState extends State<AppTODO> {
 
                 return SizedBox (
                     width: 50,
-                    height: 280,
                     child :Card(
                       color: Colors.green[200],
                       child:InkWell(
@@ -264,14 +251,22 @@ class _AppTODOState extends State<AppTODO> {
                               FutureBuilder(
                                 future: storage.getImageURL(documentSnapshot["TodoImage"]),
                                 builder: (BuildContext context, AsyncSnapshot<String> snapshot){
-                                  return Container(
-                                    width: 500,
-                                    height: 200,
-                                    child: Image.network(
-                                      snapshot.data!,
-                                      fit: BoxFit.cover,
-                                    ),
-                                  );
+
+                                  if(snapshot.data != "" && snapshot.data != null){
+                                    
+                                    return Container(
+                                      width: 500,
+                                      height: 200,
+                                      child:
+                                      Image.network(
+                                        //snapshot.data!,
+                                        snapshot.data!,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    );
+                                  }else{
+                                    return SizedBox.shrink();
+                                  }
                                 }
                               ),
                               ListTile(
