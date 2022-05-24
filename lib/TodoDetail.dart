@@ -3,6 +3,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:todo_list_lma_tas_mas/TodoDataModel.dart';
 import 'package:flutter/material.dart';
+import 'package:todo_list_lma_tas_mas/storage_service.dart';
 
 class TodoDetail extends StatelessWidget {
   //String taskName = "";
@@ -44,18 +45,45 @@ class TodoDetail extends StatelessWidget {
         body: StreamBuilder(
           stream: FirebaseFirestore.instance.collection('MesTodos').doc(todoDataModel.id).snapshots(),
           builder: (context, snapshot) {
+            final Storage storage = Storage();
             if (!snapshot.hasData) {
               return new Text("Loading");
             }
-            return new TextFormField(
-                keyboardType: TextInputType.multiline,
-                maxLines: 4,
-                decoration: InputDecoration(hintText : "Note"),
-                initialValue: todoDataModel.desc,
-                onChanged: (String value){
-                  newDescription = value;
-                },
-            );
+              return new Container(
+                child: Column(
+                  children: <Widget>[
+                    FutureBuilder(
+                        future: storage.getImageURL(todoDataModel.image),
+                        builder: (BuildContext context, AsyncSnapshot<String> snapshot){
+
+                          if(snapshot.data != "" && snapshot.data != null){
+
+                            return Container(
+                              width: 500,
+                              height: 200,
+                              child:
+                              Image.network(
+                                //snapshot.data!,
+                                snapshot.data!,
+                                fit: BoxFit.contain,
+                              ),
+                            );
+                          }else{
+                            return SizedBox.shrink();
+                          }
+                        }
+                    ),
+                    TextFormField(
+                      keyboardType: TextInputType.multiline,
+                      maxLines: 4,
+                      decoration: InputDecoration(hintText : "Note"),
+                      initialValue: todoDataModel.desc,
+                      onChanged: (String value){
+                      newDescription = value;
+                    },
+            )
+            ]
+              ));
           },
         ),
         floatingActionButton: FloatingActionButton(

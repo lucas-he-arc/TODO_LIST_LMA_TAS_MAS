@@ -247,13 +247,12 @@ class _AppTODOState extends State<AppTODO> {
                         },
                         child: Column(
                             children: <Widget>[
-                              //TODO condition pour afficher les todos sans images
                               FutureBuilder(
                                 future: storage.getImageURL(documentSnapshot["TodoImage"]),
                                 builder: (BuildContext context, AsyncSnapshot<String> snapshot){
 
                                   if(snapshot.data != "" && snapshot.data != null){
-                                    
+
                                     return Container(
                                       width: 500,
                                       height: 200,
