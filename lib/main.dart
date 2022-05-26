@@ -1,4 +1,5 @@
 //import 'dart:html';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter/material.dart';
@@ -19,7 +20,7 @@ import 'package:todo_list_lma_tas_mas/TodoDetail.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //intialisation Firebase
+  //intialisation Firebased
   await Firebase.initializeApp(
       options: FirebaseOptions(
       apiKey: "AIzaSyBU0ITv2-yYH-qLXcT7rZXSs6fazPGP4uU",
@@ -44,6 +45,8 @@ class AppTODO extends StatefulWidget {
 
 class _AppTODOState extends State<AppTODO> {
 
+  TextEditingController _searchController = TextEditingController();
+
   var storage = FirebaseFirestore.instance;
   List todos = [];
   String nomTodo = "";
@@ -53,12 +56,33 @@ class _AppTODOState extends State<AppTODO> {
   DateTime dateTodo = DateTime.now();
   final db = FirebaseFirestore.instance.collection("MesTodos");
 
+  List _allResults = [];
+  List _todoAAffiches = [];
+
   @override
   void initState() {
     super.initState();
-    todos.add("item1");
-    todos.add("item2");
+    _searchController.addListener(_onSearchChanged);
+    //_allResults = db.snapshots()
   }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  _onSearchChanged(){
+    print(_searchController.text);
+    print(_allResults);
+    searchResultList();
+    //print("saltu");
+  }
+
+  /*getTodosStreamSnapshot() async {
+
+  }*/
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? selected = await showDatePicker(
@@ -74,20 +98,20 @@ class _AppTODOState extends State<AppTODO> {
     }
   }
 
+  searchResultList(){
+    if(_searchController.text != ""){
+      for(String uneTodo in _allResults){
+        if(uneTodo.toLowerCase().contains(_searchController.text)){
+          print('OUUUUUUUIII');
+        }
+      }
+    }
+  }
+
   createTodos(){
     //map
     Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo};
     db.add(todos);
-
-    //documentReference.set(todos).whenComplete(() => print("$nomTodo created"));
-    /*
-    Map<String, Map<String, bool>> taskMap = Map<String, Map<String, bool>>();
-
-    taskMap.putIfAbsent("listeTaches", () => Map<String, bool>());
-
-    documentReference.update(taskMap);
-
-     */
   }
 
   createTodosWithPicture(){
@@ -105,7 +129,29 @@ class _AppTODOState extends State<AppTODO> {
     final Storage storage = Storage();
     return Scaffold(
       appBar: AppBar(
-        title: Text("Mes TODOs")
+        //title: Text("Mes TODOs")
+        title: Container(
+          width: double.infinity,
+          height: 40,
+          decoration: BoxDecoration(
+              color: Colors.white, borderRadius: BorderRadius.circular(5)),
+          child: Center(
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                  prefixIcon: Icon(Icons.search),
+                  suffixIcon: IconButton(
+                    icon: Icon(Icons.clear),
+                    onPressed: () {
+                      /* Clear the search field */
+                    },
+                  ),
+                  hintText: 'Search...',
+                  border: InputBorder.none),
+            )
+          )
+
+        ),
       ),
       floatingActionButton: SpeedDial(
         animatedIcon: AnimatedIcons.menu_close,
@@ -224,22 +270,28 @@ class _AppTODOState extends State<AppTODO> {
       body: StreamBuilder(
           stream: db.snapshots(),
           builder: (context, AsyncSnapshot snapshots){
+            _allResults.clear();
         if(snapshots.hasData){
+
           return ListView.builder(
               itemCount : snapshots.data?.docs.length,
               itemBuilder: (context, index) {
                 DocumentSnapshot documentSnapshot = snapshots.data.docs[index];
+
+                _allResults.add(documentSnapshot["TodoTitle"]);
 
                 String id = documentSnapshot.reference.id;
 
                 List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
                     TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"]));
 
-                //Color colorAAfficher = Color(int.parse(documentSnapshot["TodoColor"]));
-
                 String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
 
                 print(couleurString);
+
+                /*if(){
+
+                }*/
 
                 return SizedBox (
                     width: 50,
