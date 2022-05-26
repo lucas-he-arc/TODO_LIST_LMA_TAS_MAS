@@ -1,5 +1,7 @@
 //import 'dart:html';
 
+import 'dart:ffi';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter/material.dart';
@@ -46,13 +48,14 @@ class AppTODO extends StatefulWidget {
 class _AppTODOState extends State<AppTODO> {
 
   TextEditingController _searchController = TextEditingController();
+  ScrollController _actualiserListe = ScrollController();
 
   var storage = FirebaseFirestore.instance;
   List todos = [];
   String nomTodo = "";
   String descTodo = "";
   String fileName = "";
-  String colorTodo = "0xFF3dff5a";
+  String colorTodo = "0xFF0062ff";
   DateTime dateTodo = DateTime.now();
   final db = FirebaseFirestore.instance.collection("MesTodos");
 
@@ -63,6 +66,7 @@ class _AppTODOState extends State<AppTODO> {
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
+    _actualiserListe.addListener(_onSearchChanged);
     //_allResults = db.snapshots()
   }
 
@@ -99,12 +103,19 @@ class _AppTODOState extends State<AppTODO> {
   }
 
   searchResultList(){
+    _todoAAffiches.clear();
     if(_searchController.text != ""){
       for(String uneTodo in _allResults){
         if(uneTodo.toLowerCase().contains(_searchController.text)){
-          print('OUUUUUUUIII');
+          _todoAAffiches.add(uneTodo);
+          print(_todoAAffiches);
         }
       }
+
+      //db.doc("toDoToDelete").delete();
+      //Map<String,Object> todos = {"TodoTitle" : "xxxxxxxx", "TododescTodo" : "xxxxxxxx", "TodoDate" : "xxxxxxxx", "TodoImage" : "xxxxxxxx", "TodoColor" : "xxxxxxxx"};
+      //db.add(todos);
+      //db.doc("xxxxxxxx").delete();
     }
   }
 
@@ -266,14 +277,13 @@ class _AppTODOState extends State<AppTODO> {
           )
         ],
       ),
-
       body: StreamBuilder(
           stream: db.snapshots(),
           builder: (context, AsyncSnapshot snapshots){
             _allResults.clear();
         if(snapshots.hasData){
-
           return ListView.builder(
+              controller: _actualiserListe,
               itemCount : snapshots.data?.docs.length,
               itemBuilder: (context, index) {
                 DocumentSnapshot documentSnapshot = snapshots.data.docs[index];
@@ -287,65 +297,65 @@ class _AppTODOState extends State<AppTODO> {
 
                 String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
 
-                print(couleurString);
+                print("TODO TITLE :" + documentSnapshot["TodoTitle"]);
 
-                /*if(){
+                if(_todoAAffiches.contains(documentSnapshot["TodoTitle"])/* || _todoAAffiches.isEmpty*/){
+                  return SizedBox (
+                      width: 50,
+                      child :Card(
+                          color: Color(int.parse(couleurString)),
+                          child:InkWell(
+                              onTap: (){
+                                Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index],couleurChoisie: documentSnapshot["TodoColor"])));
+                              },
+                              child: Column(
+                                  children: <Widget>[
+                                    FutureBuilder(
+                                        future: storage.getImageURL(documentSnapshot["TodoImage"]),
+                                        builder: (BuildContext context, AsyncSnapshot<String> snapshot){
 
-                }*/
+                                          if(snapshot.data != "" && snapshot.data != null){
 
-                return SizedBox (
-                    width: 50,
-                    child :Card(
-                      color: Color(int.parse(couleurString)),
-                      child:InkWell(
-                        onTap: (){
-                          Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index],couleurChoisie: documentSnapshot["TodoColor"])));
-                        },
-                        child: Column(
-                            children: <Widget>[
-                              FutureBuilder(
-                                future: storage.getImageURL(documentSnapshot["TodoImage"]),
-                                builder: (BuildContext context, AsyncSnapshot<String> snapshot){
-
-                                  if(snapshot.data != "" && snapshot.data != null){
-
-                                    return Container(
-                                      width: 500,
-                                      height: 200,
-                                      child:
-                                      Image.network(
-                                        //snapshot.data!,
-                                        snapshot.data!,
-                                        fit: BoxFit.contain,
-                                      ),
-                                    );
-                                  }else{
-                                    return SizedBox.shrink();
-                                  }
-                                }
-                              ),
-                              ListTile(
-                                  title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
-                                  subtitle: Text((documentSnapshot["TodoDate"].toDate().toString())),
-                                trailing: IconButton(
-                                    icon: Icon(
-                                      Icons.delete,
+                                            return Container(
+                                              width: 500,
+                                              height: 200,
+                                              child:
+                                              Image.network(
+                                                //snapshot.data!,
+                                                snapshot.data!,
+                                                fit: BoxFit.contain,
+                                              ),
+                                            );
+                                          }else{
+                                            return SizedBox.shrink();
+                                          }
+                                        }
                                     ),
-                                    onPressed: (){
-                                      setState(() {
-                                        //todos.removeAt(index);
-                                        //todo le remove avec la firebase
-                                        deleteTodos(id);
-                                      });
-                                    }
-                                ),
+                                    ListTile(
+                                      title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
+                                      subtitle: Text((documentSnapshot["TodoDate"].toDate().toString())),
+                                      trailing: IconButton(
+                                          icon: Icon(
+                                            Icons.delete,
+                                          ),
+                                          onPressed: (){
+                                            setState(() {
+                                              //todos.removeAt(index);
+                                              //todo le remove avec la firebase
+                                              deleteTodos(id);
+                                            });
+                                          }
+                                      ),
+                                    )
+                                  ]
                               )
-                            ]
-                        )
-                    )
-                    )
-                );
-
+                          )
+                      )
+                  );
+                }else{
+                  return Text("Pas de todo correspondantes");
+                  //return SizedBox.shrink();
+                }
               });
           }else{
           return Text(

@@ -105,7 +105,6 @@ class TodoDetail extends StatelessWidget {
           focusColor: Colors.green,
           onPressed: () => updateTodo(newDescription),
           child: Icon(Icons.save)
-
       ),
     );
   }
