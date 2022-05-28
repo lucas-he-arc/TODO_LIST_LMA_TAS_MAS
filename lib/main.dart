@@ -3,7 +3,6 @@
 import 'dart:ffi';
 
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/widgets.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
@@ -66,6 +65,8 @@ class _AppTODOState extends State<AppTODO> {
   List _allResults = [];
   List _todoAAffiches = [];
 
+  Stream _testStream = new Stream.empty();
+
   @override
   void initState() {
     super.initState();
@@ -73,6 +74,7 @@ class _AppTODOState extends State<AppTODO> {
     _actualiserListe.addListener(_onSearchChanged);
     //_allResults = db.snapshots()
     tags = [];
+    _testStream = db.snapshots();
   }
 
   @override
@@ -118,15 +120,15 @@ class _AppTODOState extends State<AppTODO> {
       for(String uneTodo in _allResults){
         if(uneTodo.toLowerCase().contains(_searchController.text)){
           _todoAAffiches.add(uneTodo);
-          print(_todoAAffiches);
+          //print(_todoAAffiches);
         }
       }
-
-      //db.doc("toDoToDelete").delete();
-      //Map<String,Object> todos = {"TodoTitle" : "xxxxxxxx", "TododescTodo" : "xxxxxxxx", "TodoDate" : "xxxxxxxx", "TodoImage" : "xxxxxxxx", "TodoColor" : "xxxxxxxx"};
-      //db.add(todos);
-      //db.doc("xxxxxxxx").delete();
+    }else{
+      _todoAAffiches.addAll(_allResults);
     }
+
+    db.doc("temp").set({"TodoTitle" : "xxx", "TododescTodo" : "xxx", "TodoDate" : dateTodo, "TodoImage" : "xx", "TodoColor" : colorTodo});
+    db.doc("temp").delete();
   }
 
   createTodos(){
@@ -134,12 +136,14 @@ class _AppTODOState extends State<AppTODO> {
     Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo, "tags" : tags};
     db.add(todos);
     tags.clear();
+    _allResults.add(nomTodo);
   }
 
   createTodosWithPicture(){
     Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo, "tags" : tags};
     db.add(todos);
     fileName = "";
+    _allResults.add(nomTodo);
   }
 
   deleteTodos(String toDoToDelete){
@@ -151,29 +155,7 @@ class _AppTODOState extends State<AppTODO> {
     final Storage storage = Storage();
     return Scaffold(
       appBar: AppBar(
-        //title: Text("Mes TODOs")
-        title: Container(
-          width: double.infinity,
-          height: 40,
-          decoration: BoxDecoration(
-              color: Colors.white, borderRadius: BorderRadius.circular(5)),
-          child: Center(
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.clear),
-                    onPressed: () {
-                      /* Clear the search field */
-                    },
-                  ),
-                  hintText: 'Search...',
-                  border: InputBorder.none),
-            )
-          )
-
-        ),
+        title: Text("Mes TODOs")
       ),
       floatingActionButton: SpeedDial(
         animatedIcon: AnimatedIcons.menu_close,
@@ -405,29 +387,45 @@ class _AppTODOState extends State<AppTODO> {
           )
         ],
       ),
-      body: StreamBuilder(
-          stream: db.snapshots(),
-          builder: (context, AsyncSnapshot snapshots){
-            _allResults.clear();
-        if(snapshots.hasData){
-          return ListView.builder(
-              controller: _actualiserListe,
-              itemCount : snapshots.data?.docs.length,
-              itemBuilder: (context, index) {
-                DocumentSnapshot documentSnapshot = snapshots.data.docs[index];
+      body: Container(
+        child: Column(
+          children: [
+            Text("Rechercher une TODO"),
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                prefixIcon: Icon(Icons.search),
+              )
+            ),
+            Expanded(
+                child: StreamBuilder(
+                    stream: db.snapshots(),
+                    builder: (context, AsyncSnapshot snapshots){
+                      _allResults.clear();
+                      if(snapshots.hasData){
+                        return ListView.builder(
+                            itemCount : snapshots.data?.docs.length,
+                            itemBuilder: (context, index) {
+                              DocumentSnapshot documentSnapshot = snapshots.data.docs[index];
 
-                _allResults.add(documentSnapshot["TodoTitle"]);
+                              var show = false;
 
-                String id = documentSnapshot.reference.id;
+                              _allResults.add(documentSnapshot["TodoTitle"]);
+
+                              String id = documentSnapshot.reference.id;
 
                 List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
                     TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"], documentSnapshot["tags"]));
 
-                String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
+                              String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
 
-                print("TODO TITLE :" + documentSnapshot["TodoTitle"]);
+                              if(_todoAAffiches.isEmpty && _searchController.text == ""){
+                                show = true;
+                              }else{
+                                show = false;
+                              }
 
-                //if(_todoAAffiches.contains(documentSnapshot["TodoTitle"])/* || _todoAAffiches.isEmpty*/){
+                if(_todoAAffiches.contains(documentSnapshot["TodoTitle"]) || show){
                   return SizedBox (
                       width: 50,
                       child :Card(
@@ -442,7 +440,7 @@ class _AppTODOState extends State<AppTODO> {
                                         future: storage.getImageURL(documentSnapshot["TodoImage"]),
                                         builder: (BuildContext context, AsyncSnapshot<String> snapshot){
 
-                                          if(snapshot.data != "" && snapshot.data != null){
+                                            if(snapshot.data != "" && snapshot.data != null){
 
                                             return Container(
                                               width: 500,
@@ -463,7 +461,7 @@ class _AppTODOState extends State<AppTODO> {
                                       title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
                                       subtitle: Text((documentSnapshot["TodoDate"].toDate().toString())),
                                       trailing: IconButton(
-                                          icon: const Icon(
+                                          icon: Icon(
                                             Icons.delete,
                                           ),
                                           onPressed: (){
@@ -503,19 +501,22 @@ class _AppTODOState extends State<AppTODO> {
                           )
                       )
                   );
-                //}else{
+                }else{
                   //return Text("Pas de todo correspondantes");
-                  //return SizedBox.shrink();
-                //}
-              });
-          }else{
-          return Text(
-            'No Data...',
-          );
-        }
-
-    }
-    ),
-      );
+                  return SizedBox.shrink();
+                }
+                            });
+                      }else{
+                        return Text(
+                          'No Data...',
+                        );
+                      }
+                    }
+                ),
+            )
+          ],
+        ),
+      )
+    )
   }
 }
