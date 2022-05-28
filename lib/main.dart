@@ -20,7 +20,6 @@ import 'package:todo_list_lma_tas_mas/TodoDetail.dart';
 
 
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //intialisation Firebase
@@ -122,11 +121,7 @@ class _AppTODOState extends State<AppTODO> {
     Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo};
     db.add(todos);
     fileName = "";
-
-
   }
-
-
 
   deleteTodos(String toDoToDelete){
     db.doc(toDoToDelete).delete();
@@ -167,13 +162,9 @@ class _AppTODOState extends State<AppTODO> {
                           ),
                           ElevatedButton(
                             onPressed: () => _selectDate(context),
-                            child: Text("Choisir une date"),
+                            child: Text("Choose Date"),
                           ),
                           Text("${dateTodo}".split(' ')[0]),
-                          ElevatedButton(
-                            onPressed: () => _selectTime(context),
-                            child: Text("Choisir l'heure"),
-                          ),
                         ],
                       ),),
                       actions: <Widget>[
@@ -350,6 +341,8 @@ class _AppTODOState extends State<AppTODO> {
                 //Color colorAAfficher = Color(int.parse(documentSnapshot["TodoColor"]));
 
                 String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
+
+                print(couleurString);
 
                 return SizedBox (
                     width: 50,
