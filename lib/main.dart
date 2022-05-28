@@ -1,5 +1,8 @@
 //import 'dart:html';
 import 'package:file_picker/file_picker.dart';
+import 'package:date_format/date_format.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +16,7 @@ import 'firebase_options.dart';                               //Import LMA - Fir
 import 'package:todo_list_lma_tas_mas/CheckBoxState.dart';
 import 'package:todo_list_lma_tas_mas/TodoDataModel.dart';
 import 'package:todo_list_lma_tas_mas/TodoDetail.dart';
+
 
 
 
@@ -51,6 +55,10 @@ class _AppTODOState extends State<AppTODO> {
   String fileName = "";
   String colorTodo = "0xFF3dff5a";
   DateTime dateTodo = DateTime.now();
+  TimeOfDay timeTodo = TimeOfDay.now();
+  Map<String, bool> liste_checkbox = new Map();
+  String listElement = "";
+  var _controller = TextEditingController();
   final db = FirebaseFirestore.instance.collection("MesTodos");
 
   @override
@@ -74,27 +82,51 @@ class _AppTODOState extends State<AppTODO> {
     }
   }
 
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null)
+        timeTodo = picked;
+        dateTodo = new DateTime(dateTodo.year, dateTodo.month, dateTodo.day, timeTodo.hour, timeTodo.minute);
+}
+
+  void ajouterElementListe(){
+    liste_checkbox.addEntries([MapEntry(listElement, false)]);
+    _controller.clear();
+    listElement = "";
+
+    print("Ma map ---------------->" + liste_checkbox.keys.toString());
+
+  }
+
   createTodos(){
     //map
-    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo};
-    db.add(todos);
-
-    //documentReference.set(todos).whenComplete(() => print("$nomTodo created"));
     /*
     Map<String, Map<String, bool>> taskMap = Map<String, Map<String, bool>>();
 
-    taskMap.putIfAbsent("listeTaches", () => Map<String, bool>());
+    taskMap.putIfAbsent("listeTaches", () => liste_checkbox);
 
-    documentReference.update(taskMap);
+    print("ma task map " + taskMap.entries.toString());
+    */
+    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo, "TodoCheckbox" : liste_checkbox};
 
-     */
+    //documentReference.set(todos).whenComplete(() => print("$nomTodo created"));
+
+    db.add(todos);
+    liste_checkbox.clear();
   }
 
   createTodosWithPicture(){
     Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo};
     db.add(todos);
     fileName = "";
+
+
   }
+
+
 
   deleteTodos(String toDoToDelete){
     db.doc(toDoToDelete).delete();
@@ -135,9 +167,13 @@ class _AppTODOState extends State<AppTODO> {
                           ),
                           ElevatedButton(
                             onPressed: () => _selectDate(context),
-                            child: Text("Choose Date"),
+                            child: Text("Choisir une date"),
                           ),
                           Text("${dateTodo}".split(' ')[0]),
+                          ElevatedButton(
+                            onPressed: () => _selectTime(context),
+                            child: Text("Choisir l'heure"),
+                          ),
                         ],
                       ),),
                       actions: <Widget>[
@@ -217,7 +253,83 @@ class _AppTODOState extends State<AppTODO> {
                         );
                       }
                   )
-          )
+          ),
+          SpeedDialChild(
+              child: Icon(Icons.check_box),
+              label: ('Todo checkbox'),
+              onTap: () =>
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context){
+                        return AlertDialog(
+                          title: Text("Ajouter une TODO"),
+                          content: Form(child: Column(
+                            children: <Widget> [
+                              TextFormField(
+                                onChanged: (String value){
+                                  nomTodo = value;
+                                },
+                                decoration: InputDecoration(hintText: "Titre"),
+                              ),
+                              TextFormField(
+                                onChanged: (String value){
+                                  descTodo = value;
+                                },
+                                decoration: InputDecoration(hintText: "Description"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => _selectDate(context),
+                                child: Text("Choisir une date"),
+                              ),
+                              Text("${dateTodo}".split(' ')[0]),
+                              ElevatedButton(
+                                onPressed: () => _selectTime(context),
+                                child: Text("Choisir l'heure"),
+                              ),
+                              Text(timeTodo.toString()),
+                              Container(
+                                child:
+                                Stack(
+                                  fit: StackFit.loose,
+                                  alignment: AlignmentDirectional.topEnd,
+                                  children: [
+                                    TextFormField(
+                                        controller: _controller,
+                                        onChanged: (String value){
+                                        listElement = value;
+                                      },
+                                      decoration: InputDecoration(hintText: "Élément de liste"),
+                                    ),
+                                    IconButton(onPressed: ajouterElementListe, icon: Icon(Icons.add))
+                                  ],
+                                ),
+                              ),
+                              /*
+                              ListView.builder(
+                                  itemCount: liste_checkbox.length,
+                                  itemBuilder: (context, index) {
+
+                                    List<String> checkBoxElements = liste_checkbox.keys.toList();
+
+                                    return Text("checkBoxElements[index]");
+                                  }
+                              )
+                              */
+                            ],
+                          ),
+                          ),
+                          actions: <Widget>[
+                            TextButton(
+                                onPressed: (){
+                                  createTodos();
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text("Ajouter"))
+                          ],
+                        );
+                      }
+                  )
+          ),
         ],
       ),
 
@@ -233,13 +345,11 @@ class _AppTODOState extends State<AppTODO> {
                 String id = documentSnapshot.reference.id;
 
                 List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
-                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"]));
+                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"], documentSnapshot["TodoDate"]));
 
                 //Color colorAAfficher = Color(int.parse(documentSnapshot["TodoColor"]));
 
                 String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
-
-                print(couleurString);
 
                 return SizedBox (
                     width: 50,
@@ -274,7 +384,7 @@ class _AppTODOState extends State<AppTODO> {
                               ),
                               ListTile(
                                   title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
-                                  subtitle: Text((documentSnapshot["TodoDate"].toDate().toString())),
+                                  subtitle: Text(formatDate(documentSnapshot["TodoDate"].toDate(), [dd, ".", mm, ".", yyyy, " " , hh, ":", nn])),
                                 trailing: IconButton(
                                     icon: Icon(
                                       Icons.delete,

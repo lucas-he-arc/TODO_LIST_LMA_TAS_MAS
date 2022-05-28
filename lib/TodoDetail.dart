@@ -1,5 +1,5 @@
 //import 'dart:html';
-
+import 'package:date_format/date_format.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_hsvcolor_picker/flutter_hsvcolor_picker.dart';
 import 'package:todo_list_lma_tas_mas/TodoDataModel.dart';
@@ -12,6 +12,7 @@ class TodoDetail extends StatelessWidget {
 
   String couleurChoisie;
 
+
   TodoDetail({Key? key, required this.todoDataModel, required this.couleurChoisie}) : super(key: key);
 
   //map firebase
@@ -21,8 +22,6 @@ class TodoDetail extends StatelessWidget {
     FirebaseFirestore.instance.collection("MesTodos").doc(todoDataModel.id).update({"TododescTodo" : newDescription});
     //FirebaseFirestore.instance.collection("MesTodos").doc(todoDataModel.id).update({"TodoColor" : couleurChoisie});
     //todoDataModel.color = couleurChoisie;
-    print(couleurChoisie);
-    //print(newDescription);
   }
 
   addTask(String taskName){
@@ -33,6 +32,8 @@ class TodoDetail extends StatelessWidget {
 
     documentReference.set({"listeTaches": {taskName : false}}, SetOptions(merge: true));
   }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +89,11 @@ class TodoDetail extends StatelessWidget {
                       onChanged: (String value){
                       newDescription = value;
                     },
+                    ),
+                    AboutListTile(
+                        child:
+                        Text(formatDate(todoDataModel.date.toDate(), [dd, " ", MM, " ", yyyy, " " , hh, ":", nn]) ),
+
                     ),
                     IconButton(
                         icon: Icon(
