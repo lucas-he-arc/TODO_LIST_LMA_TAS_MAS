@@ -3,6 +3,7 @@
 import 'dart:ffi';
 
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
@@ -71,6 +72,7 @@ class _AppTODOState extends State<AppTODO> {
     _searchController.addListener(_onSearchChanged);
     _actualiserListe.addListener(_onSearchChanged);
     //_allResults = db.snapshots()
+    tags = [];
   }
 
   @override
@@ -87,12 +89,9 @@ class _AppTODOState extends State<AppTODO> {
   }
 
   void ajouterElementListe(){
-    setState(() {
-      tags.add(monTag);
-      _controllerTag.clear();
-      monTag = "";
-    });
-    print(tags.last);
+    tags.add(monTag);
+    _controllerTag.clear();
+    monTag = "";
   }
 
   /*getTodosStreamSnapshot() async {
@@ -186,78 +185,96 @@ class _AppTODOState extends State<AppTODO> {
                 showDialog(
                   context: context,
                   builder: (BuildContext context){
-                    return AlertDialog(
-                      title: Text("Ajouter une TODO"),
-                      content: Form(child: Column(
-                        children: <Widget> [
-                          TextFormField(
-                            onChanged: (String value){
-                              nomTodo = value;
-                            },
-                            decoration: InputDecoration(hintText: "Titre"),
-                          ),
-                          TextFormField(
-                            onChanged: (String value){
-                              descTodo = value;
-                            },
-                            decoration: InputDecoration(hintText: "Description"),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => setState(() => _selectDate(context)),
-                            child: Text("Choose Date"),
-                          ),
-                          Text("${dateTodo}".split(' ')[0]),
-
-                          Container(
-                            child:
-                            Stack(
-                              fit: StackFit.loose,
-                              alignment: AlignmentDirectional.topEnd,
-                              children: [
-                                TextFormField(
-                                  controller: _controllerTag,
-                                  onChanged: (String value){
-                                    monTag = value;
-                                  },
-                                  decoration: InputDecoration(hintText: "Tag"),
-                                ),
-                                IconButton(onPressed: ajouterElementListe, icon: Icon(Icons.add))
-                              ],
+                    return StatefulBuilder(
+                        builder: (context, setState){
+                        return AlertDialog(
+                        title: Text("Ajouter une TODO"),
+                        content: Form(child: Column(
+                          children: <Widget> [
+                            TextFormField(
+                              onChanged: (String value){
+                                nomTodo = value;
+                              },
+                              decoration: InputDecoration(hintText: "Titre"),
                             ),
-                          ),
-                        Container(
-                            margin: const EdgeInsets.only(top: 15.0),
-                          child: Row(
-                            children: [
-                              for (var tag in tags) Container(
-                                  decoration: BoxDecoration(
-                                      color: Colors.teal,
-                                      borderRadius: BorderRadius.circular(100.0)),
-                                  padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
-                                  margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
-                                  child: Row (children: [
-                                    const Icon(
-                                      Icons.local_offer_outlined,
-                                      color: Colors.amberAccent,
-                                      size: 25.0,
-                                    ),
-                                    Text(tag, style: TextStyle(fontSize: 15.0, color: Colors.white))
-                                  ],)
-                              )
-                            ],
-                          )
-                        ),
+                            TextFormField(
+                              onChanged: (String value){
+                                descTodo = value;
+                              },
+                              decoration: InputDecoration(hintText: "Description"),
+                            ),
+                            ElevatedButton(
+                              onPressed: () => setState(() => _selectDate(context)),
+                              child: Text("Choose Date"),
+                            ),
+                            Text("${dateTodo}".split(' ')[0]),
+
+                            Container(
+                              child:
+                              Stack(
+                                fit: StackFit.loose,
+                                alignment: AlignmentDirectional.topEnd,
+                                children: [
+                                  TextFormField(
+                                    controller: _controllerTag,
+                                    onChanged: (String value){
+                                      monTag = value;
+                                    },
+                                    decoration: InputDecoration(hintText: "Tag"),
+                                  ),
+                                  IconButton(icon: Icon(Icons.add),
+                                      onPressed: (){
+                                        setState(() {
+                                          ajouterElementListe();
+                                        });
+                                      }
+                                  )
+                                ],
+                              ),
+                            ),
+                            Container(
+                                margin: const EdgeInsets.only(top: 15.0),
+                                child: Wrap( direction: Axis.horizontal, alignment: WrapAlignment.start,
+                                  children: [
+                                    for (var tag in tags) Container(
+                                        decoration: BoxDecoration(
+                                            color: Colors.teal,
+                                            borderRadius: BorderRadius.circular(100.0)),
+                                        padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
+                                        margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
+                                        child: Wrap (children:[
+                                          const Icon(
+                                            Icons.local_offer_outlined,
+                                            color: Colors.amberAccent,
+                                            size: 20.0,
+                                          ),
+                                          Text(" " + tag, style: const TextStyle(fontSize: 15.0, color: Colors.white))
+                                        ],)
+                                    )
+                                    //margin: const EdgeInsets.only(right: 15.0),
+                                  ],
+                                )
+                            ),
+                            IconButton(icon: Icon(Icons.delete_rounded),
+                                onPressed: (){
+                                  setState(() {
+                                    tags.clear();
+                                  });
+                                }
+                            )
+                          ],
+                        ),),
+                        actions: <Widget>[
+                          TextButton(
+                              onPressed: (){
+                                createTodos();
+                                Navigator.of(context).pop();
+                              },
+                              child: Text("Ajouter"))
                         ],
-                      ),),
-                      actions: <Widget>[
-                        TextButton(
-                            onPressed: (){
-                              createTodos();
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("Ajouter"))
-                      ],
-                    );
+                      );
+                    });
+
                   }
                 )
           ),
@@ -267,11 +284,13 @@ class _AppTODOState extends State<AppTODO> {
               onTap: () =>
                   showDialog(
                       context: context,
-                      builder: (BuildContext context){
-                        return AlertDialog(
-                          title: Text("Ajouter une TODO"),
-                          content: Form(child: Column(
-                            children: <Widget> [
+                        builder: (BuildContext context){
+                        return StatefulBuilder(
+                          builder: (context, setState){
+                          return AlertDialog(
+                            title: Text("Ajouter une TODO"),
+                            content: Form(child: Column(
+                              children: <Widget> [
                               TextFormField(
                                 onChanged: (String value){
                                   nomTodo = value;
@@ -303,7 +322,7 @@ class _AppTODOState extends State<AppTODO> {
 
                                   final path = result.files.single.path!;
                                   fileName = result.files.single.name;
-                                  
+
                                   storage
                                       .uploadFile(path, fileName)
                                       .then((value) => print('Image ajoutée'));
@@ -312,12 +331,60 @@ class _AppTODOState extends State<AppTODO> {
                                 },
                                 child: Text("Choisir une image"),
                               ),
-                              TextFormField(
-                                onChanged: (String value){
-                                  tags.add(value);
-                                },
-                                decoration: InputDecoration(hintText: "Tag"),
-                              ),
+
+                                Container(
+                                  child:
+                                  Stack(
+                                    fit: StackFit.loose,
+                                    alignment: AlignmentDirectional.topEnd,
+                                    children: [
+                                      TextFormField(
+                                        controller: _controllerTag,
+                                        onChanged: (String value){
+                                          monTag = value;
+                                        },
+                                        decoration: InputDecoration(hintText: "Tag"),
+                                      ),
+                                      IconButton(icon: Icon(Icons.add),
+                                          onPressed: (){
+                                            setState(() {
+                                              ajouterElementListe();
+                                            });
+                                          }
+                                      )
+                                    ],
+                                  ),
+                                ),
+                                Container(
+                                    margin: const EdgeInsets.only(top: 15.0),
+                                    child: Wrap( direction: Axis.horizontal, alignment: WrapAlignment.start,
+                                      children: [
+                                        for (var tag in tags) Container(
+                                            decoration: BoxDecoration(
+                                                color: Colors.teal,
+                                                borderRadius: BorderRadius.circular(100.0)),
+                                            padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
+                                            margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
+                                            child: Wrap (children:[
+                                              const Icon(
+                                                Icons.local_offer_outlined,
+                                                color: Colors.amberAccent,
+                                                size: 20.0,
+                                              ),
+                                              Text(" " + tag, style: const TextStyle(fontSize: 15.0, color: Colors.white))
+                                            ],)
+                                        )
+                                        //margin: const EdgeInsets.only(right: 15.0),
+                                      ],
+                                    )
+                                ),
+                                IconButton(icon: Icon(Icons.delete_rounded),
+                                    onPressed: (){
+                                      setState(() {
+                                        tags.clear();
+                                      });
+                                    }
+                                )
                             ],
                           ),),
                           actions: <Widget>[
@@ -329,9 +396,12 @@ class _AppTODOState extends State<AppTODO> {
                                 },
                                 child: Text("Ajouter"))
                           ],
-                        );
-                      }
+                          );
+                          });
+
+                        }
                   )
+
           )
         ],
       ),
@@ -406,8 +476,8 @@ class _AppTODOState extends State<AppTODO> {
                                       ),
                                     ),
                                     Container(
-                                        margin: const EdgeInsets.only(top: 15.0),
-                                        child: Row(
+                                        margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 10.0),
+                                        child: Wrap(
                                           children: [
                                             for (var tag in documentSnapshot["tags"]) Container(
                                                 decoration: BoxDecoration(
@@ -415,13 +485,13 @@ class _AppTODOState extends State<AppTODO> {
                                                     borderRadius: BorderRadius.circular(100.0)),
                                                 padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
                                                 margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
-                                                child: Row (children: [
+                                                child: Wrap (alignment: WrapAlignment.start, children:[
                                                   const Icon(
                                                     Icons.local_offer_outlined,
                                                     color: Colors.amberAccent,
-                                                    size: 25.0,
+                                                    size: 20.0,
                                                   ),
-                                                  Text(tag, style: const TextStyle(fontSize: 15.0, color: Colors.white))
+                                                  Text(" " + tag, style: const TextStyle(fontSize: 15.0, color: Colors.white))
                                                 ],)
                                             )
                                             //margin: const EdgeInsets.only(right: 15.0),
