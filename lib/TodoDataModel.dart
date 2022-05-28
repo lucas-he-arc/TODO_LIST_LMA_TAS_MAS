@@ -4,8 +4,9 @@ class TodoDataModel{
   //String name, desc, check;
 
   String id,name, desc, image, color;
+  List<dynamic> tags;
   Map<String, bool> values = {};
 
-  TodoDataModel(this.id, this.name, this.desc, this.image, this.color);
+  TodoDataModel(this.id, this.name, this.desc, this.image, this.color, this.tags);
   //TodoDataModel(this.name, this.desc, this.check);
 }

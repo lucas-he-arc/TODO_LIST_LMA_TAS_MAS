@@ -57,6 +57,9 @@ class _AppTODOState extends State<AppTODO> {
   String fileName = "";
   String colorTodo = "0xFF0062ff";
   DateTime dateTodo = DateTime.now();
+  List<dynamic> tags = [];
+  String monTag = "";
+  var _controllerTag = TextEditingController();
   final db = FirebaseFirestore.instance.collection("MesTodos");
 
   List _allResults = [];
@@ -81,7 +84,15 @@ class _AppTODOState extends State<AppTODO> {
     print(_searchController.text);
     print(_allResults);
     searchResultList();
-    //print("saltu");
+  }
+
+  void ajouterElementListe(){
+    setState(() {
+      tags.add(monTag);
+      _controllerTag.clear();
+      monTag = "";
+    });
+    print(tags.last);
   }
 
   /*getTodosStreamSnapshot() async {
@@ -121,12 +132,13 @@ class _AppTODOState extends State<AppTODO> {
 
   createTodos(){
     //map
-    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo};
+    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo, "tags" : tags};
     db.add(todos);
+    tags.clear();
   }
 
   createTodosWithPicture(){
-    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo};
+    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo, "tags" : tags};
     db.add(todos);
     fileName = "";
   }
@@ -191,10 +203,50 @@ class _AppTODOState extends State<AppTODO> {
                             decoration: InputDecoration(hintText: "Description"),
                           ),
                           ElevatedButton(
-                            onPressed: () => _selectDate(context),
+                            onPressed: () => setState(() => _selectDate(context)),
                             child: Text("Choose Date"),
                           ),
                           Text("${dateTodo}".split(' ')[0]),
+
+                          Container(
+                            child:
+                            Stack(
+                              fit: StackFit.loose,
+                              alignment: AlignmentDirectional.topEnd,
+                              children: [
+                                TextFormField(
+                                  controller: _controllerTag,
+                                  onChanged: (String value){
+                                    monTag = value;
+                                  },
+                                  decoration: InputDecoration(hintText: "Tag"),
+                                ),
+                                IconButton(onPressed: ajouterElementListe, icon: Icon(Icons.add))
+                              ],
+                            ),
+                          ),
+                        Container(
+                            margin: const EdgeInsets.only(top: 15.0),
+                          child: Row(
+                            children: [
+                              for (var tag in tags) Container(
+                                  decoration: BoxDecoration(
+                                      color: Colors.teal,
+                                      borderRadius: BorderRadius.circular(100.0)),
+                                  padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
+                                  margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
+                                  child: Row (children: [
+                                    const Icon(
+                                      Icons.local_offer_outlined,
+                                      color: Colors.amberAccent,
+                                      size: 25.0,
+                                    ),
+                                    Text(tag, style: TextStyle(fontSize: 15.0, color: Colors.white))
+                                  ],)
+                              )
+                            ],
+                          )
+                        ),
                         ],
                       ),),
                       actions: <Widget>[
@@ -260,6 +312,12 @@ class _AppTODOState extends State<AppTODO> {
                                 },
                                 child: Text("Choisir une image"),
                               ),
+                              TextFormField(
+                                onChanged: (String value){
+                                  tags.add(value);
+                                },
+                                decoration: InputDecoration(hintText: "Tag"),
+                              ),
                             ],
                           ),),
                           actions: <Widget>[
@@ -293,13 +351,13 @@ class _AppTODOState extends State<AppTODO> {
                 String id = documentSnapshot.reference.id;
 
                 List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
-                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"]));
+                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"], documentSnapshot["tags"]));
 
                 String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
 
                 print("TODO TITLE :" + documentSnapshot["TodoTitle"]);
 
-                if(_todoAAffiches.contains(documentSnapshot["TodoTitle"])/* || _todoAAffiches.isEmpty*/){
+                //if(_todoAAffiches.contains(documentSnapshot["TodoTitle"])/* || _todoAAffiches.isEmpty*/){
                   return SizedBox (
                       width: 50,
                       child :Card(
@@ -335,7 +393,7 @@ class _AppTODOState extends State<AppTODO> {
                                       title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
                                       subtitle: Text((documentSnapshot["TodoDate"].toDate().toString())),
                                       trailing: IconButton(
-                                          icon: Icon(
+                                          icon: const Icon(
                                             Icons.delete,
                                           ),
                                           onPressed: (){
@@ -346,16 +404,39 @@ class _AppTODOState extends State<AppTODO> {
                                             });
                                           }
                                       ),
-                                    )
+                                    ),
+                                    Container(
+                                        margin: const EdgeInsets.only(top: 15.0),
+                                        child: Row(
+                                          children: [
+                                            for (var tag in documentSnapshot["tags"]) Container(
+                                                decoration: BoxDecoration(
+                                                    color: Colors.teal,
+                                                    borderRadius: BorderRadius.circular(100.0)),
+                                                padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
+                                                margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
+                                                child: Row (children: [
+                                                  const Icon(
+                                                    Icons.local_offer_outlined,
+                                                    color: Colors.amberAccent,
+                                                    size: 25.0,
+                                                  ),
+                                                  Text(tag, style: const TextStyle(fontSize: 15.0, color: Colors.white))
+                                                ],)
+                                            )
+                                            //margin: const EdgeInsets.only(right: 15.0),
+                                          ],
+                                        )
+                                    ),
                                   ]
                               )
                           )
                       )
                   );
-                }else{
-                  return Text("Pas de todo correspondantes");
+                //}else{
+                  //return Text("Pas de todo correspondantes");
                   //return SizedBox.shrink();
-                }
+                //}
               });
           }else{
           return Text(
