@@ -1,6 +1,5 @@
 //import 'dart:html';
 
-import 'dart:ffi';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
@@ -48,7 +47,6 @@ class AppTODO extends StatefulWidget {
 class _AppTODOState extends State<AppTODO> {
 
   TextEditingController _searchController = TextEditingController();
-  ScrollController _actualiserListe = ScrollController();
 
   var storage = FirebaseFirestore.instance;
   List todos = [];
@@ -62,12 +60,13 @@ class _AppTODOState extends State<AppTODO> {
   List _allResults = [];
   List _todoAAffiches = [];
 
+  Stream _testStream = new Stream.empty();
+
   @override
   void initState() {
     super.initState();
     _searchController.addListener(_onSearchChanged);
-    _actualiserListe.addListener(_onSearchChanged);
-    //_allResults = db.snapshots()
+    _testStream = db.snapshots();
   }
 
   @override
@@ -78,15 +77,8 @@ class _AppTODOState extends State<AppTODO> {
   }
 
   _onSearchChanged(){
-    print(_searchController.text);
-    print(_allResults);
     searchResultList();
-    //print("saltu");
   }
-
-  /*getTodosStreamSnapshot() async {
-
-  }*/
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? selected = await showDatePicker(
@@ -98,37 +90,41 @@ class _AppTODOState extends State<AppTODO> {
 
     if (selected != null) { // && selected != dateTodo
       dateTodo = selected;
-      print(dateTodo);
     }
   }
 
   searchResultList(){
+    print('caca');
     _todoAAffiches.clear();
     if(_searchController.text != ""){
       for(String uneTodo in _allResults){
         if(uneTodo.toLowerCase().contains(_searchController.text)){
           _todoAAffiches.add(uneTodo);
-          print(_todoAAffiches);
+          //print(_todoAAffiches);
         }
       }
-
-      //db.doc("toDoToDelete").delete();
-      //Map<String,Object> todos = {"TodoTitle" : "xxxxxxxx", "TododescTodo" : "xxxxxxxx", "TodoDate" : "xxxxxxxx", "TodoImage" : "xxxxxxxx", "TodoColor" : "xxxxxxxx"};
-      //db.add(todos);
-      //db.doc("xxxxxxxx").delete();
+      print('pipi');
+      print(_todoAAffiches);
+    }else{
+      _todoAAffiches.addAll(_allResults);
     }
+
+    db.doc("temp").set({"TodoTitle" : "xxx", "TododescTodo" : "xxx", "TodoDate" : dateTodo, "TodoImage" : "xx", "TodoColor" : colorTodo});
+    db.doc("temp").delete();
   }
 
   createTodos(){
     //map
     Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo};
     db.add(todos);
+    _allResults.add(nomTodo);
   }
 
   createTodosWithPicture(){
     Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo};
     db.add(todos);
     fileName = "";
+    _allResults.add(nomTodo);
   }
 
   deleteTodos(String toDoToDelete){
@@ -140,29 +136,7 @@ class _AppTODOState extends State<AppTODO> {
     final Storage storage = Storage();
     return Scaffold(
       appBar: AppBar(
-        //title: Text("Mes TODOs")
-        title: Container(
-          width: double.infinity,
-          height: 40,
-          decoration: BoxDecoration(
-              color: Colors.white, borderRadius: BorderRadius.circular(5)),
-          child: Center(
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  suffixIcon: IconButton(
-                    icon: Icon(Icons.clear),
-                    onPressed: () {
-                      /* Clear the search field */
-                    },
-                  ),
-                  hintText: 'Search...',
-                  border: InputBorder.none),
-            )
-          )
-
-        ),
+        title: Text("Mes TODOs")
       ),
       floatingActionButton: SpeedDial(
         animatedIcon: AnimatedIcons.menu_close,
@@ -277,94 +251,113 @@ class _AppTODOState extends State<AppTODO> {
           )
         ],
       ),
-      body: StreamBuilder(
-          stream: db.snapshots(),
-          builder: (context, AsyncSnapshot snapshots){
-            _allResults.clear();
-        if(snapshots.hasData){
-          return ListView.builder(
-              controller: _actualiserListe,
-              itemCount : snapshots.data?.docs.length,
-              itemBuilder: (context, index) {
-                DocumentSnapshot documentSnapshot = snapshots.data.docs[index];
+      body: Container(
+        child: Column(
+          children: [
+            Text("Rechercher une TODO"),
+            TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                prefixIcon: Icon(Icons.search),
+              )
+            ),
+            Expanded(
+                child: StreamBuilder(
+                    stream: db.snapshots(),
+                    builder: (context, AsyncSnapshot snapshots){
+                      _allResults.clear();
+                      if(snapshots.hasData){
+                        return ListView.builder(
+                            itemCount : snapshots.data?.docs.length,
+                            itemBuilder: (context, index) {
+                              DocumentSnapshot documentSnapshot = snapshots.data.docs[index];
 
-                _allResults.add(documentSnapshot["TodoTitle"]);
+                              var show = false;
 
-                String id = documentSnapshot.reference.id;
+                              _allResults.add(documentSnapshot["TodoTitle"]);
 
-                List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
-                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"]));
+                              String id = documentSnapshot.reference.id;
 
-                String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
+                              List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
+                                  TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"]));
 
-                print("TODO TITLE :" + documentSnapshot["TodoTitle"]);
+                              String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
 
-                if(_todoAAffiches.contains(documentSnapshot["TodoTitle"])/* || _todoAAffiches.isEmpty*/){
-                  return SizedBox (
-                      width: 50,
-                      child :Card(
-                          color: Color(int.parse(couleurString)),
-                          child:InkWell(
-                              onTap: (){
-                                Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index],couleurChoisie: documentSnapshot["TodoColor"])));
-                              },
-                              child: Column(
-                                  children: <Widget>[
-                                    FutureBuilder(
-                                        future: storage.getImageURL(documentSnapshot["TodoImage"]),
-                                        builder: (BuildContext context, AsyncSnapshot<String> snapshot){
+                              if(_todoAAffiches.isEmpty && _searchController.text == ""){
+                                show = true;
+                              }else{
+                                show = false;
+                              }
 
-                                          if(snapshot.data != "" && snapshot.data != null){
+                              if(_todoAAffiches.contains(documentSnapshot["TodoTitle"]) || show){
+                                return SizedBox (
+                                    width: 50,
+                                    child :Card(
+                                        color: Color(int.parse(couleurString)),
+                                        child:InkWell(
+                                            onTap: (){
+                                              Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index],couleurChoisie: documentSnapshot["TodoColor"])));
+                                            },
+                                            child: Column(
+                                                children: <Widget>[
+                                                  FutureBuilder(
+                                                      future: storage.getImageURL(documentSnapshot["TodoImage"]),
+                                                      builder: (BuildContext context, AsyncSnapshot<String> snapshot){
 
-                                            return Container(
-                                              width: 500,
-                                              height: 200,
-                                              child:
-                                              Image.network(
-                                                //snapshot.data!,
-                                                snapshot.data!,
-                                                fit: BoxFit.contain,
-                                              ),
-                                            );
-                                          }else{
-                                            return SizedBox.shrink();
-                                          }
-                                        }
-                                    ),
-                                    ListTile(
-                                      title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
-                                      subtitle: Text((documentSnapshot["TodoDate"].toDate().toString())),
-                                      trailing: IconButton(
-                                          icon: Icon(
-                                            Icons.delete,
-                                          ),
-                                          onPressed: (){
-                                            setState(() {
-                                              //todos.removeAt(index);
-                                              //todo le remove avec la firebase
-                                              deleteTodos(id);
-                                            });
-                                          }
-                                      ),
+                                                        if(snapshot.data != "" && snapshot.data != null){
+
+                                                          return Container(
+                                                            width: 500,
+                                                            height: 200,
+                                                            child:
+                                                            Image.network(
+                                                              //snapshot.data!,
+                                                              snapshot.data!,
+                                                              fit: BoxFit.contain,
+                                                            ),
+                                                          );
+                                                        }else{
+                                                          return SizedBox.shrink();
+                                                        }
+                                                      }
+                                                  ),
+                                                  ListTile(
+                                                    title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
+                                                    subtitle: Text((documentSnapshot["TodoDate"].toDate().toString())),
+                                                    trailing: IconButton(
+                                                        icon: Icon(
+                                                          Icons.delete,
+                                                        ),
+                                                        onPressed: (){
+                                                          setState(() {
+                                                            //todos.removeAt(index);
+                                                            //todo le remove avec la firebase
+                                                            deleteTodos(id);
+                                                          });
+                                                        }
+                                                    ),
+                                                  )
+                                                ]
+                                            )
+                                        )
                                     )
-                                  ]
-                              )
-                          )
-                      )
-                  );
-                }else{
-                  return Text("Pas de todo correspondantes");
-                  //return SizedBox.shrink();
-                }
-              });
-          }else{
-          return Text(
-            'No Data...',
-          );
-        }
-
-    }
-    ),
+                                );
+                              }else{
+                                //return Text("Pas de todo correspondantes");
+                                return SizedBox.shrink();
+                              }
+                            });
+                      }else{
+                        return Text(
+                          'No Data...',
+                        );
+                      }
+                    }
+                ),
+            )
+          ],
+        ),
+      )
       );
   }
 }
