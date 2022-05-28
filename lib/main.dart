@@ -142,6 +142,7 @@ class _AppTODOState extends State<AppTODO> {
   createTodosWithPicture(){
     Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo, "tags" : tags};
     db.add(todos);
+    tags.clear();
     fileName = "";
     _allResults.add(nomTodo);
   }
@@ -517,6 +518,6 @@ class _AppTODOState extends State<AppTODO> {
           ],
         ),
       )
-    )
+    );
   }
 }
