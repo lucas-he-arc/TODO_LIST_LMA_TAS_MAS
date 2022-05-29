@@ -108,28 +108,28 @@ class _AppTODOState extends State<AppTODO> {
 
   searchResultList() {
     _todoAAffiches.clear();
-    if (_searchController.text != "") {
-      for (String uneTodo in _allResults) {
-        if (uneTodo.toLowerCase().contains(_searchController.text)) {
-          _todoAAffiches.add(uneTodo);
-          //print(_todoAAffiches);
-        }
-      }
-
-      _allResultsTag.forEach((key, value) {
-        for(String everyTag in value){
-
-          if(everyTag.toLowerCase().contains(_searchController.text)) {
-            _todoAAffiches.add(key);
+    setState(() {
+      if (_searchController.text.toLowerCase() != "") {
+        for (String uneTodo in _allResults) {
+          if (uneTodo.toLowerCase().contains(_searchController.text.toLowerCase())) {
+            _todoAAffiches.add(uneTodo);
+            //print(_todoAAffiches);
           }
         }
-      });
-    }else{
-      _todoAAffiches.addAll(_allResults);
-    }
 
-    db.doc("temp").set({"TodoTitle" : "xxx", "TododescTodo" : "xxx", "TodoDate" : dateTodo, "TodoImage" : "xx", "TodoColor" : colorTodo, "TodoCheckbox" : {}, "tags" : []});
-    db.doc("temp").delete();
+        _allResultsTag.forEach((key, value) {
+          for(String everyTag in value){
+
+            if(everyTag.toLowerCase().contains(_searchController.text.toLowerCase())) {
+              _todoAAffiches.add(key);
+            }
+          }
+        });
+      }else{
+        _todoAAffiches.addAll(_allResults);
+      }
+    });
+
   }
 
   createTodos(){
@@ -180,6 +180,7 @@ class _AppTODOState extends State<AppTODO> {
   Widget build(BuildContext context) {
     final Storage storage = Storage();
     return Scaffold(
+        resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text("Mes TODOs")
       ),
@@ -197,7 +198,9 @@ class _AppTODOState extends State<AppTODO> {
                         builder: (context, setState){
                         return AlertDialog(
                         title: Text("Ajouter une TODO"),
-                        content: Form(child: Column(
+                        content: Form(
+                          child: SingleChildScrollView(
+                          child: Column(
                           children: <Widget> [
                             TextFormField(
                               onChanged: (String value){
@@ -296,7 +299,8 @@ class _AppTODOState extends State<AppTODO> {
                                 }
                             )
                           ],
-                        ),),
+                        ),
+                          )),
                         actions: <Widget>[
                           TextButton(
                               onPressed: (){
@@ -322,7 +326,9 @@ class _AppTODOState extends State<AppTODO> {
                           builder: (context, setState){
                           return AlertDialog(
                             title: Text("Ajouter une TODO"),
-                            content: Form(child: Column(
+                            content: Form(
+                              child:SingleChildScrollView(
+                              child: Column(
                               children: <Widget> [
                               TextFormField(
                                 onChanged: (String value){
@@ -393,7 +399,7 @@ class _AppTODOState extends State<AppTODO> {
                                 child: Text("Choisir une image"),
                               ),
                             ],
-                          ),),
+                          ),)),
                           actions: <Widget>[
                             TextButton(
                                 onPressed: (){
@@ -420,7 +426,9 @@ class _AppTODOState extends State<AppTODO> {
                           builder: (context, setState){
                         return AlertDialog(
                           title: Text("Ajouter une TODO"),
-                          content: Form(child: Column(
+                          content: Form(
+                            child: SingleChildScrollView(
+                            child: Column(
                             children: <Widget>[
                               TextFormField(
                                 onChanged: (String value) {
@@ -558,7 +566,7 @@ class _AppTODOState extends State<AppTODO> {
                               ),
                             ],
                           ),
-                          ),
+                          )),
                           actions: <Widget>[
                             TextButton(
                                 onPressed: () {
@@ -622,7 +630,7 @@ class _AppTODOState extends State<AppTODO> {
                 }
 
                 if(documentSnapshot["TodoTitle"] != "xxx"){
-                  if(_todoAAffiches.contains(documentSnapshot["TodoTitle"]) || show){
+                  if(_todoAAffiches.contains(documentSnapshot["TodoTitle"].toLowerCase()) || show){
                     return SizedBox (
                         width: 50,
                         child :Card(

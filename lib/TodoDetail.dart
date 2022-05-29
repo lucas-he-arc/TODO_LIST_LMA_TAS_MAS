@@ -76,6 +76,7 @@ class _TodoDetailState extends State<TodoDetail> {
     String newDescription = widget.todoDataModel.desc;
     //TODO - Parcourir les items de la firebase
     return Scaffold(
+        resizeToAvoidBottomInset: false,
         appBar: AppBar(title: Text(widget.todoDataModel.name),),
         body: StreamBuilder(
           stream: FirebaseFirestore.instance.collection('MesTodos').doc(widget.todoDataModel.id).snapshots(),
@@ -88,6 +89,7 @@ class _TodoDetailState extends State<TodoDetail> {
                 color: Color(int.parse(widget.todoDataModel.color)),
                 child: Column(
                   children: <Widget>[
+
                     FutureBuilder(
                         future: storage.getImageURL(widget.todoDataModel.image),
                         builder: (BuildContext context, AsyncSnapshot<String> snapshot){
