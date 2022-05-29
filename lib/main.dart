@@ -1,8 +1,10 @@
 //import 'dart:html';
 
 import 'dart:ffi';
-
 import 'package:file_picker/file_picker.dart';
+import 'package:date_format/date_format.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/painting.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/material.dart';
@@ -13,7 +15,6 @@ import 'package:flutter/material.dart';                       //Import LMA - Fir
 import 'package:provider/provider.dart';                      //Import LMA - Firebase
 import 'package:todo_list_lma_tas_mas/storage_service.dart';
 import 'firebase_options.dart';                               //Import LMA - Firebase
-import 'package:todo_list_lma_tas_mas/CheckBoxState.dart';
 import 'package:todo_list_lma_tas_mas/TodoDataModel.dart';
 import 'package:todo_list_lma_tas_mas/TodoDetail.dart';
 
@@ -22,7 +23,7 @@ import 'package:todo_list_lma_tas_mas/TodoDetail.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  //intialisation Firebased
+  //intialisation Firebase
   await Firebase.initializeApp(
       options: FirebaseOptions(
       apiKey: "AIzaSyBU0ITv2-yYH-qLXcT7rZXSs6fazPGP4uU",
@@ -57,6 +58,10 @@ class _AppTODOState extends State<AppTODO> {
   String fileName = "";
   String colorTodo = "0xFF0062ff";
   DateTime dateTodo = DateTime.now();
+  TimeOfDay timeTodo = TimeOfDay.now();
+  Map<String, bool> liste_checkbox = new Map();
+  String listElement = "";
+  var _controller = TextEditingController();
   List<dynamic> tags = [];
   String monTag = "";
   var _controllerTag = TextEditingController();
@@ -65,7 +70,7 @@ class _AppTODOState extends State<AppTODO> {
   List _allResults = [];
   List _todoAAffiches = [];
 
-  Stream _testStream = new Stream.empty();
+  Map<String, List<String>> _allResultsTag = new Map();
 
   @override
   void initState() {
@@ -73,8 +78,6 @@ class _AppTODOState extends State<AppTODO> {
     _searchController.addListener(_onSearchChanged);
     _actualiserListe.addListener(_onSearchChanged);
     //_allResults = db.snapshots()
-    tags = [];
-    _testStream = db.snapshots();
   }
 
   @override
@@ -84,9 +87,9 @@ class _AppTODOState extends State<AppTODO> {
     super.dispose();
   }
 
-  _onSearchChanged(){
-    print(_searchController.text);
-    print(_allResults);
+  _onSearchChanged() {
+    //print(_searchController.text);
+    //print(_allResults);
     searchResultList();
   }
 
@@ -96,58 +99,80 @@ class _AppTODOState extends State<AppTODO> {
     monTag = "";
   }
 
-  /*getTodosStreamSnapshot() async {
+   void ajouterElementListeCheckbox() {
+    liste_checkbox.addEntries([MapEntry(listElement, false)]);
+    _controller.clear();
+    listElement = "";
 
-  }*/
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? selected = await showDatePicker(
-      context: context,
-      initialDate: dateTodo,
-      firstDate: DateTime(2010),
-      lastDate: DateTime(2025),
-    );
-
-    if (selected != null) { // && selected != dateTodo
-      dateTodo = selected;
-      print(dateTodo);
-    }
   }
 
-  searchResultList(){
+  searchResultList() {
     _todoAAffiches.clear();
-    if(_searchController.text != ""){
-      for(String uneTodo in _allResults){
-        if(uneTodo.toLowerCase().contains(_searchController.text)){
-          _todoAAffiches.add(uneTodo);
-          //print(_todoAAffiches);
+    setState(() {
+      if (_searchController.text.toLowerCase() != "") {
+        for (String uneTodo in _allResults) {
+          if (uneTodo.toLowerCase().contains(_searchController.text.toLowerCase())) {
+            _todoAAffiches.add(uneTodo);
+            //print(_todoAAffiches);
+          }
         }
-      }
-    }else{
-      _todoAAffiches.addAll(_allResults);
-    }
 
-    db.doc("temp").set({"TodoTitle" : "xxx", "TododescTodo" : "xxx", "TodoDate" : dateTodo, "TodoImage" : "xx", "TodoColor" : colorTodo});
-    db.doc("temp").delete();
+        _allResultsTag.forEach((key, value) {
+          for(String everyTag in value){
+
+            if(everyTag.toLowerCase().contains(_searchController.text.toLowerCase())) {
+              _todoAAffiches.add(key);
+            }
+          }
+        });
+      }else{
+        _todoAAffiches.addAll(_allResults);
+      }
+    });
+
   }
 
   createTodos(){
     //map
-    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo, "tags" : tags};
+    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo,"TodoCheckbox": liste_checkbox, "tags" : tags};
     db.add(todos);
-    tags.clear();
+
     _allResults.add(nomTodo);
+
+    List<String> tagList = [];
+
+    for(String tag in tags){
+      tagList.add(tag);
+    }
+
+    _allResultsTag.putIfAbsent(nomTodo, () => tagList);
+
+    tagList = [];
+    liste_checkbox.clear();
+    tags.clear();
   }
 
   createTodosWithPicture(){
-    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo, "tags" : tags};
+    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo,"TodoCheckbox": liste_checkbox, "tags" : tags};
     db.add(todos);
-    tags.clear();
+
     fileName = "";
     _allResults.add(nomTodo);
+
+    List<String> tagList = [];
+
+    for(String tag in tags){
+      tagList.add(tag);
+    }
+
+    _allResultsTag.putIfAbsent(nomTodo, () => tagList);
+    tagList = [];
+
+    liste_checkbox.clear();
+    tags.clear();
   }
 
-  deleteTodos(String toDoToDelete){
+  deleteTodos(String toDoToDelete) {
     db.doc(toDoToDelete).delete();
   }
 
@@ -155,6 +180,7 @@ class _AppTODOState extends State<AppTODO> {
   Widget build(BuildContext context) {
     final Storage storage = Storage();
     return Scaffold(
+        resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text("Mes TODOs")
       ),
@@ -172,7 +198,9 @@ class _AppTODOState extends State<AppTODO> {
                         builder: (context, setState){
                         return AlertDialog(
                         title: Text("Ajouter une TODO"),
-                        content: Form(child: Column(
+                        content: Form(
+                          child: SingleChildScrollView(
+                          child: Column(
                           children: <Widget> [
                             TextFormField(
                               onChanged: (String value){
@@ -187,10 +215,35 @@ class _AppTODOState extends State<AppTODO> {
                               decoration: InputDecoration(hintText: "Description"),
                             ),
                             ElevatedButton(
-                              onPressed: () => setState(() => _selectDate(context)),
-                              child: Text("Choose Date"),
+                              onPressed: () async{
+                                DateTime? newDate = await showDatePicker(
+                                  context: context,
+                                  initialDate: dateTodo,
+                                  firstDate: DateTime(2010),
+                                  lastDate: DateTime(2025),
+                                );
+
+                                if(newDate == null) return;
+                                setState(() => dateTodo = newDate);
+                              },
+                              child: Text("Choisir une date"),
                             ),
-                            Text("${dateTodo}".split(' ')[0]),
+                            Text("${dateTodo.toLocal()}".split(' ')[0]),
+                            ElevatedButton(
+                              onPressed: () async{
+                                TimeOfDay? newTime = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.now(),
+                                );
+
+                                if(newTime == null) return;
+                                setState(() => dateTodo = new DateTime(
+                                    dateTodo.year, dateTodo.month, dateTodo.day, newTime.hour,
+                                    newTime.minute));
+                              },
+                              child: Text("Choisir une heure"),
+                            ),
+                            Text(dateTodo.hour.toString() + ":" + dateTodo.minute.toString()),
 
                             Container(
                               child:
@@ -246,7 +299,8 @@ class _AppTODOState extends State<AppTODO> {
                                 }
                             )
                           ],
-                        ),),
+                        ),
+                          )),
                         actions: <Widget>[
                           TextButton(
                               onPressed: (){
@@ -272,7 +326,9 @@ class _AppTODOState extends State<AppTODO> {
                           builder: (context, setState){
                           return AlertDialog(
                             title: Text("Ajouter une TODO"),
-                            content: Form(child: Column(
+                            content: Form(
+                              child:SingleChildScrollView(
+                              child: Column(
                               children: <Widget> [
                               TextFormField(
                                 onChanged: (String value){
@@ -286,6 +342,36 @@ class _AppTODOState extends State<AppTODO> {
                                 },
                                 decoration: InputDecoration(hintText: "Description"),
                               ),
+                                ElevatedButton(
+                                  onPressed: () async{
+                                    DateTime? newDate = await showDatePicker(
+                                      context: context,
+                                      initialDate: dateTodo,
+                                      firstDate: DateTime(2010),
+                                      lastDate: DateTime(2025),
+                                    );
+
+                                    if(newDate == null) return;
+                                    setState(() => dateTodo = newDate);
+                                  },
+                                  child: Text("Choisir une date"),
+                                ),
+                                Text("${dateTodo.toLocal()}".split(' ')[0]),
+                                ElevatedButton(
+                                  onPressed: () async{
+                                    TimeOfDay? newTime = await showTimePicker(
+                                      context: context,
+                                      initialTime: TimeOfDay.now(),
+                                    );
+
+                                    if(newTime == null) return;
+                                    setState(() => dateTodo = new DateTime(
+                                        dateTodo.year, dateTodo.month, dateTodo.day, newTime.hour,
+                                        newTime.minute));
+                                  },
+                                  child: Text("Choisir une heure"),
+                                ),
+                                Text(dateTodo.hour.toString() + ":" + dateTodo.minute.toString()),
                               ElevatedButton(
                                 onPressed: () async {
                                   final result = await FilePicker.platform.pickFiles(
@@ -305,71 +391,15 @@ class _AppTODOState extends State<AppTODO> {
 
                                   final path = result.files.single.path!;
                                   fileName = result.files.single.name;
-
+                                  
                                   storage
                                       .uploadFile(path, fileName)
                                       .then((value) => print('Image ajoutée'));
-
-
                                 },
                                 child: Text("Choisir une image"),
                               ),
-
-                                Container(
-                                  child:
-                                  Stack(
-                                    fit: StackFit.loose,
-                                    alignment: AlignmentDirectional.topEnd,
-                                    children: [
-                                      TextFormField(
-                                        controller: _controllerTag,
-                                        onChanged: (String value){
-                                          monTag = value;
-                                        },
-                                        decoration: InputDecoration(hintText: "Tag"),
-                                      ),
-                                      IconButton(icon: Icon(Icons.add),
-                                          onPressed: (){
-                                            setState(() {
-                                              ajouterElementListe();
-                                            });
-                                          }
-                                      )
-                                    ],
-                                  ),
-                                ),
-                                Container(
-                                    margin: const EdgeInsets.only(top: 15.0),
-                                    child: Wrap( direction: Axis.horizontal, alignment: WrapAlignment.start,
-                                      children: [
-                                        for (var tag in tags) Container(
-                                            decoration: BoxDecoration(
-                                                color: Colors.teal,
-                                                borderRadius: BorderRadius.circular(100.0)),
-                                            padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
-                                            margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
-                                            child: Wrap (children:[
-                                              const Icon(
-                                                Icons.local_offer_outlined,
-                                                color: Colors.amberAccent,
-                                                size: 20.0,
-                                              ),
-                                              Text(" " + tag, style: const TextStyle(fontSize: 15.0, color: Colors.white))
-                                            ],)
-                                        )
-                                        //margin: const EdgeInsets.only(right: 15.0),
-                                      ],
-                                    )
-                                ),
-                                IconButton(icon: Icon(Icons.delete_rounded),
-                                    onPressed: (){
-                                      setState(() {
-                                        tags.clear();
-                                      });
-                                    }
-                                )
                             ],
-                          ),),
+                          ),)),
                           actions: <Widget>[
                             TextButton(
                                 onPressed: (){
@@ -384,8 +414,172 @@ class _AppTODOState extends State<AppTODO> {
 
                         }
                   )
+              ),
+          SpeedDialChild(
+              child: Icon(Icons.check_box),
+              label: ('Todo checkbox'),
+              onTap: () =>
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return StatefulBuilder(
+                          builder: (context, setState){
+                        return AlertDialog(
+                          title: Text("Ajouter une TODO"),
+                          content: Form(
+                            child: SingleChildScrollView(
+                            child: Column(
+                            children: <Widget>[
+                              TextFormField(
+                                onChanged: (String value) {
+                                  nomTodo = value;
+                                },
+                                decoration: InputDecoration(hintText: "Titre"),
+                              ),
+                              TextFormField(
+                                onChanged: (String value) {
+                                  descTodo = value;
+                                },
+                                decoration: InputDecoration(
+                                    hintText: "Description"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () async{
+                                  DateTime? newDate = await showDatePicker(
+                                      context: context,
+                                      initialDate: dateTodo,
+                                      firstDate: DateTime(2010),
+                                      lastDate: DateTime(2025),
+                                  );
 
-          )
+                                  if(newDate == null) return;
+                                  setState(() => dateTodo = newDate);
+                                },
+                                child: Text("Choisir une date"),
+                              ),
+                              Text("${dateTodo.toLocal()}".split(' ')[0]),
+                              ElevatedButton(
+                                onPressed: () async{
+                                  TimeOfDay? newTime = await showTimePicker(
+                                    context: context,
+                                    initialTime: TimeOfDay.now(),
+                                  );
+
+                                  if(newTime == null) return;
+                                  setState(() => dateTodo = new DateTime(
+                                      dateTodo.year, dateTodo.month, dateTodo.day, newTime.hour,
+                                      newTime.minute));
+                                },
+                                child: Text("Choisir une heure"),
+                              ),
+                              Text(dateTodo.hour.toString() + ":" + dateTodo.minute.toString()),
+                              Container(
+                                child:
+                                Stack(
+                                  fit: StackFit.loose,
+                                  alignment: AlignmentDirectional.topEnd,
+                                  children: [
+                                    TextFormField(
+                                      controller: _controllerTag,
+                                      onChanged: (String value){
+                                        monTag = value;
+                                      },
+                                      decoration: InputDecoration(hintText: "Tag"),
+                                    ),
+                                    IconButton(icon: Icon(Icons.add),
+                                        onPressed: (){
+                                          setState(() {
+                                            ajouterElementListe();
+                                          });
+                                        }
+                                    )
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                  margin: const EdgeInsets.only(top: 15.0),
+                                  child: Wrap( direction: Axis.horizontal, alignment: WrapAlignment.start,
+                                    children: [
+                                      for (var tag in tags) Container(
+                                          decoration: BoxDecoration(
+                                              color: Colors.teal,
+                                              borderRadius: BorderRadius.circular(100.0)),
+                                          padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
+                                          margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
+                                          child: Wrap (children:[
+                                            const Icon(
+                                              Icons.local_offer_outlined,
+                                              color: Colors.amberAccent,
+                                              size: 20.0,
+                                            ),
+                                            Text(" " + tag, style: const TextStyle(fontSize: 15.0, color: Colors.white))
+                                          ],)
+                                      )
+                                      //margin: const EdgeInsets.only(right: 15.0),
+                                    ],
+                                  )
+                              ),
+                              IconButton(icon: Icon(Icons.delete_rounded),
+                                  onPressed: (){
+                                    setState(() {
+                                      tags.clear();
+                                    });
+                                  }
+                              ),
+                              Container(
+                                child:
+                                Stack(
+                                  fit: StackFit.loose,
+                                  alignment: AlignmentDirectional.topEnd,
+                                  children: [
+                                    TextFormField(
+                                      controller: _controller,
+                                      onChanged: (String value) {
+                                        listElement = value;
+                                      },
+                                      decoration: InputDecoration(
+                                          hintText: "Élément de liste"),
+                                    ),
+                                    IconButton(
+                                        onPressed: (){
+                                          setState(() {
+                                            ajouterElementListeCheckbox();
+                                          });
+                                        },
+                                        icon: Icon(Icons.add))
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                  margin: const EdgeInsets.only(top: 15.0),
+                                  child: Wrap( direction: Axis.horizontal, alignment: WrapAlignment.start,
+                                    children: [
+                                      for(var v in liste_checkbox.keys) Container(
+                                          child: Row(children:[
+                                            Text(" " + v.toString())
+                                          ])
+
+                                      )
+
+                                    ],
+                                  )
+                              ),
+                            ],
+                          ),
+                          )),
+                          actions: <Widget>[
+                            TextButton(
+                                onPressed: () {
+                                  createTodos();
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text("Ajouter"))
+                          ],
+                        );
+                        });
+                      }
+                  )
+          ),
         ],
       ),
       body: Container(
@@ -413,106 +607,122 @@ class _AppTODOState extends State<AppTODO> {
 
                               _allResults.add(documentSnapshot["TodoTitle"]);
 
+                              List<String> tagList = [];
+
+                              for(String tag in documentSnapshot["tags"]){
+                                tagList.add(tag);
+                              }
+
+                              _allResultsTag.putIfAbsent(documentSnapshot["TodoTitle"], () => tagList);
+                              tagList = [];
+
                               String id = documentSnapshot.reference.id;
 
                 List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
-                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"], documentSnapshot["tags"]));
+                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"],documentSnapshot["TodoDate"] ,documentSnapshot["TodoCheckbox"], documentSnapshot["tags"]));
 
-                              String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
+                String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
 
-                              if(_todoAAffiches.isEmpty && _searchController.text == ""){
-                                show = true;
-                              }else{
-                                show = false;
-                              }
+                if(/*_todoAAffiches.isEmpty &&*/ _searchController.text == ""){
+                  show = true;
+                }else{
+                  show = false;
+                }
 
-                if(_todoAAffiches.contains(documentSnapshot["TodoTitle"]) || show){
-                  return SizedBox (
-                      width: 50,
-                      child :Card(
-                          color: Color(int.parse(couleurString)),
-                          child:InkWell(
-                              onTap: (){
-                                Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index],couleurChoisie: documentSnapshot["TodoColor"])));
-                              },
-                              child: Column(
-                                  children: <Widget>[
-                                    FutureBuilder(
-                                        future: storage.getImageURL(documentSnapshot["TodoImage"]),
-                                        builder: (BuildContext context, AsyncSnapshot<String> snapshot){
+                if(documentSnapshot["TodoTitle"] != "xxx"){
+                  if(_todoAAffiches.contains(documentSnapshot["TodoTitle"].toLowerCase()) || show){
+                    return SizedBox (
+                        width: 50,
+                        child :Card(
+                            color: Color(int.parse(couleurString)),
+                            child:InkWell(
+                                onTap: (){
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index],couleurChoisie: documentSnapshot["TodoColor"])));
+                                },
+                                child: Column(
+                                    children: <Widget>[
+                                      FutureBuilder(
+                                          future: storage.getImageURL(documentSnapshot["TodoImage"]),
+                                          builder: (BuildContext context, AsyncSnapshot<String> snapshot){
 
-                                            if(snapshot.data != "" && snapshot.data != null){
+                                              if(snapshot.data != "" && snapshot.data != null){
 
-                                            return Container(
-                                              width: 500,
-                                              height: 200,
-                                              child:
-                                              Image.network(
-                                                //snapshot.data!,
-                                                snapshot.data!,
-                                                fit: BoxFit.contain,
-                                              ),
-                                            );
-                                          }else{
-                                            return SizedBox.shrink();
-                                          }
-                                        }
-                                    ),
-                                    ListTile(
-                                      title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
-                                      subtitle: Text((documentSnapshot["TodoDate"].toDate().toString())),
-                                      trailing: IconButton(
-                                          icon: Icon(
-                                            Icons.delete,
-                                          ),
-                                          onPressed: (){
-                                            setState(() {
-                                              //todos.removeAt(index);
-                                              //todo le remove avec la firebase
-                                              deleteTodos(id);
-                                            });
+                                              return Container(
+                                                width: 500,
+                                                height: 200,
+                                                child:
+                                                Image.network(
+                                                  //snapshot.data!,
+                                                  snapshot.data!,
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              );
+                                            }else{
+                                              return SizedBox.shrink();
+                                            }
                                           }
                                       ),
-                                    ),
-                                    Container(
-                                        margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 10.0),
-                                        child: Wrap(
-                                          children: [
-                                            for (var tag in documentSnapshot["tags"]) Container(
-                                                decoration: BoxDecoration(
-                                                    color: Colors.teal,
-                                                    borderRadius: BorderRadius.circular(100.0)),
-                                                padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
-                                                margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
-                                                child: Wrap (alignment: WrapAlignment.start, children:[
-                                                  const Icon(
-                                                    Icons.local_offer_outlined,
-                                                    color: Colors.amberAccent,
-                                                    size: 20.0,
-                                                  ),
-                                                  Text(" " + tag, style: const TextStyle(fontSize: 15.0, color: Colors.white))
-                                                ],)
-                                            )
-                                            //margin: const EdgeInsets.only(right: 15.0),
-                                          ],
-                                        )
-                                    ),
-                                  ]
-                              )
-                          )
-                      )
-                  );
+                                      ListTile(
+                                        title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
+                                        subtitle: Text(formatDate(documentSnapshot["TodoDate"].toDate(), [dd, " ", MM, " ", yyyy, " " , hh, ":", nn]).toString()),
+                                        trailing: IconButton(
+                                            icon: Icon(
+                                              Icons.delete,
+                                            ),
+                                            onPressed: (){
+                                              setState(() {
+                                                //todos.removeAt(index);
+                                                //todo le remove avec la firebase
+                                                deleteTodos(id);
+                                              });
+                                            }
+                                        ),
+                                      ),
+                                      Container(
+                                          margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 10.0),
+                                          child: Wrap(
+                                            children: [
+                                              for (var tag in documentSnapshot["tags"]) Container(
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.teal,
+                                                      borderRadius: BorderRadius.circular(100.0)),
+                                                  padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
+                                                  margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
+                                                  child: Wrap (alignment: WrapAlignment.start, children:[
+                                                    const Icon(
+                                                      Icons.local_offer_outlined,
+                                                      color: Colors.amberAccent,
+                                                      size: 20.0,
+                                                    ),
+                                                    Text(" " + tag, style: const TextStyle(fontSize: 15.0, color: Colors.white))
+                                                  ],)
+                                              )
+                                              //margin: const EdgeInsets.only(right: 15.0),
+                                            ],
+                                          )
+                                      ),
+                                    ]
+                                )
+                            )
+                        )
+                    );
+                  }else{
+                    //return Text("Pas de todo correspondantes");
+                    return SizedBox.shrink();
+                  }
                 }else{
-                  //return Text("Pas de todo correspondantes");
                   return SizedBox.shrink();
                 }
                             });
+
                       }else{
                         return Text(
                           'No Data...',
                         );
                       }
+
                     }
+
                 ),
             )
           ],

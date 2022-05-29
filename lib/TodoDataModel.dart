@@ -1,12 +1,13 @@
-import 'package:todo_list_lma_tas_mas/CheckBoxState.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class TodoDataModel{
   //String name, desc, check;
 
   String id,name, desc, image, color;
+  Timestamp date;
+  Map<String, dynamic> checkbox;
   List<dynamic> tags;
-  Map<String, bool> values = {};
 
-  TodoDataModel(this.id, this.name, this.desc, this.image, this.color, this.tags);
+  TodoDataModel(this.id, this.name, this.desc, this.image, this.color, this.date, this.checkbox, this.tags);
   //TodoDataModel(this.name, this.desc, this.check);
 }
