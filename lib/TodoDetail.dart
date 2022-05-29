@@ -20,7 +20,9 @@ class TodoDetail extends StatefulWidget {
 
 class _TodoDetailState extends State<TodoDetail> {
   String listElement = "";
+  String monTag = "";
   var _controller = TextEditingController();
+  var _controllerTag = TextEditingController();
 
   //map firebase
   updateTodo(String newDescription){
@@ -45,6 +47,16 @@ class _TodoDetailState extends State<TodoDetail> {
 
       _controller.clear();
       listElement = "";
+    }
+  }
+
+  void ajouterElementListeTag(){
+    if(monTag != ""){
+      widget.todoDataModel.tags.add(monTag);
+      FirebaseFirestore.instance.collection("MesTodos").doc(widget.todoDataModel.id).update({"tags" : widget.todoDataModel.tags});
+
+      _controllerTag.clear();
+      monTag = "";
     }
   }
 
@@ -126,8 +138,8 @@ class _TodoDetailState extends State<TodoDetail> {
 
                     ),
                     Container(
-                        margin: const EdgeInsets.all(15.0),
-                        child: Row(
+                        margin: const EdgeInsets.all(0.0),
+                        child: Wrap(
                           children: [
                             for (var tag in widget.todoDataModel.tags) Container(
                                 decoration: BoxDecoration(
@@ -135,24 +147,49 @@ class _TodoDetailState extends State<TodoDetail> {
                                     borderRadius: BorderRadius.circular(100.0)),
                                 padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
                                 margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
-                                child: Row (children: [
+                                child: Wrap (children: [
                                   const Icon(
                                     Icons.local_offer_outlined,
                                     color: Colors.amberAccent,
                                     size: 25.0,
                                   ),
                                   Text(tag, style: TextStyle(fontSize: 15.0, color: Colors.white)),
-                                  IconButton(icon: Icon(Icons.delete),
+
+                                SizedBox(
+                                  height: 15.0,
+                                  width: 15.0,
+                                  child: IconButton(icon: Icon(Icons.delete),
                                       onPressed: (){
                                         setState(() {
                                           supprimerTag(tag);
                                         });
                                       }
-                                  )
+                                  ))
                                 ],)
-                            )
+                            ),
                           ],
                         )
+                    ),
+                    Container(
+                      child:
+                      Stack(
+                        fit: StackFit.loose,
+                        alignment: AlignmentDirectional.topEnd,
+                        children: [
+                          TextFormField(
+                            controller: _controllerTag,
+                            onChanged: (String value){
+                              monTag = value;
+                            },
+                            decoration: InputDecoration(hintText: "Tag"),
+                          ),
+                          IconButton(icon: Icon(Icons.add),
+                              onPressed: (){
+                                ajouterElementListeTag();
+                              }
+                          )
+                        ],
+                      ),
                     ),
                     IconButton(
                         icon: Icon(
