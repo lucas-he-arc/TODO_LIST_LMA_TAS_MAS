@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';                       //Import LMA - Fir
 import 'package:provider/provider.dart';                      //Import LMA - Firebase
 import 'package:todo_list_lma_tas_mas/storage_service.dart';
 import 'firebase_options.dart';                               //Import LMA - Firebase
-import 'package:todo_list_lma_tas_mas/CheckBoxState.dart';
 import 'package:todo_list_lma_tas_mas/TodoDataModel.dart';
 import 'package:todo_list_lma_tas_mas/TodoDetail.dart';
 
@@ -336,13 +335,9 @@ class _AppTODOState extends State<AppTODO> {
                 String id = documentSnapshot.reference.id;
 
                 List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
-                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"], documentSnapshot["TodoDate"]));
-
-                //Color colorAAfficher = Color(int.parse(documentSnapshot["TodoColor"]));
+                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"], documentSnapshot["TodoDate"], documentSnapshot["TodoCheckbox"]));
 
                 String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
-
-                print(couleurString);
 
                 return SizedBox (
                     width: 50,
@@ -350,7 +345,7 @@ class _AppTODOState extends State<AppTODO> {
                       color: Color(int.parse(couleurString)),
                       child:InkWell(
                         onTap: (){
-                          Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index],couleurChoisie: documentSnapshot["TodoColor"])));
+                          Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index], couleurChoisie: documentSnapshot["TodoColor"])));
                         },
                         child: Column(
                             children: <Widget>[
