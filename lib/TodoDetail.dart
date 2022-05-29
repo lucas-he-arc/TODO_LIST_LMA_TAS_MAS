@@ -89,6 +89,28 @@ class TodoDetail extends StatelessWidget {
                       newDescription = value;
                     },
                     ),
+                    Container(
+                        margin: const EdgeInsets.only(top: 15.0),
+                        child: Row(
+                          children: [
+                            for (var tag in todoDataModel.tags) Container(
+                                decoration: BoxDecoration(
+                                    color: Colors.teal,
+                                    borderRadius: BorderRadius.circular(100.0)),
+                                padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
+                                margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
+                                child: Row (children: [
+                                  const Icon(
+                                    Icons.local_offer_outlined,
+                                    color: Colors.amberAccent,
+                                    size: 25.0,
+                                  ),
+                                  Text(tag, style: TextStyle(fontSize: 15.0, color: Colors.white))
+                                ],)
+                            )
+                          ],
+                        )
+                    ),
                     IconButton(
                         icon: Icon(
                           Icons.color_lens,
@@ -105,7 +127,6 @@ class TodoDetail extends StatelessWidget {
           focusColor: Colors.green,
           onPressed: () => updateTodo(newDescription),
           child: Icon(Icons.save)
-
       ),
     );
   }
