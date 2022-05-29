@@ -489,8 +489,8 @@ class _AppTODOState extends State<AppTODO> {
                           )
                       );
                     } else {
-                      return Text("Pas de todo correspondantes");
-                      //return SizedBox.shrink();
+                      //return Text("Pas de todo correspondantes");
+                      return SizedBox.shrink();
                     }
                   });
             } else {
