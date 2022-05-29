@@ -6,7 +6,8 @@ class TodoDataModel{
   String id,name, desc, image, color;
   Timestamp date;
   Map<String, dynamic> checkbox;
+  List<dynamic> tags;
 
-  TodoDataModel(this.id, this.name, this.desc, this.image, this.color, this.date, this.checkbox);
+  TodoDataModel(this.id, this.name, this.desc, this.image, this.color, this.date, this.checkbox, this.tags);
   //TodoDataModel(this.name, this.desc, this.check);
 }
