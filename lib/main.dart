@@ -1,4 +1,6 @@
 //import 'dart:html';
+
+import 'dart:ffi';
 import 'package:file_picker/file_picker.dart';
 import 'package:date_format/date_format.dart';
 import 'package:flutter/cupertino.dart';
@@ -46,12 +48,15 @@ class AppTODO extends StatefulWidget {
 
 class _AppTODOState extends State<AppTODO> {
 
+  TextEditingController _searchController = TextEditingController();
+  ScrollController _actualiserListe = ScrollController();
+
   var storage = FirebaseFirestore.instance;
   List todos = [];
   String nomTodo = "";
   String descTodo = "";
   String fileName = "";
-  String colorTodo = "0xFF3dff5a";
+  String colorTodo = "0xFF0062ff";
   DateTime dateTodo = DateTime.now();
   TimeOfDay timeTodo = TimeOfDay.now();
   Map<String, bool> liste_checkbox = new Map();
@@ -59,12 +64,34 @@ class _AppTODOState extends State<AppTODO> {
   var _controller = TextEditingController();
   final db = FirebaseFirestore.instance.collection("MesTodos");
 
+  List _allResults = [];
+  List _todoAAffiches = [];
+
   @override
   void initState() {
     super.initState();
-    todos.add("item1");
-    todos.add("item2");
+    _searchController.addListener(_onSearchChanged);
+    _actualiserListe.addListener(_onSearchChanged);
+    //_allResults = db.snapshots()
   }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  _onSearchChanged() {
+    print(_searchController.text);
+    print(_allResults);
+    searchResultList();
+    //print("saltu");
+  }
+
+  /*getTodosStreamSnapshot() async {
+
+  }*/
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? selected = await showDatePicker(
@@ -86,43 +113,63 @@ class _AppTODOState extends State<AppTODO> {
       initialTime: TimeOfDay.now(),
     );
     if (picked != null)
-        timeTodo = picked;
-        dateTodo = new DateTime(dateTodo.year, dateTodo.month, dateTodo.day, timeTodo.hour, timeTodo.minute);
-}
+      timeTodo = picked;
+    dateTodo = new DateTime(
+        dateTodo.year, dateTodo.month, dateTodo.day, timeTodo.hour,
+        timeTodo.minute);
+  }
 
-  void ajouterElementListe(){
+  void ajouterElementListe() {
     liste_checkbox.addEntries([MapEntry(listElement, false)]);
     _controller.clear();
     listElement = "";
 
     print("Ma map ---------------->" + liste_checkbox.keys.toString());
-
   }
 
-  createTodos(){
+  searchResultList() {
+    _todoAAffiches.clear();
+    if (_searchController.text != "") {
+      for (String uneTodo in _allResults) {
+        if (uneTodo.toLowerCase().contains(_searchController.text)) {
+          _todoAAffiches.add(uneTodo);
+          print(_todoAAffiches);
+        }
+      }
+
+      //db.doc("toDoToDelete").delete();
+      //Map<String,Object> todos = {"TodoTitle" : "xxxxxxxx", "TododescTodo" : "xxxxxxxx", "TodoDate" : "xxxxxxxx", "TodoImage" : "xxxxxxxx", "TodoColor" : "xxxxxxxx"};
+      //db.add(todos);
+      //db.doc("xxxxxxxx").delete();
+    }
+  }
+
+  createTodos() {
     //map
-    /*
-    Map<String, Map<String, bool>> taskMap = Map<String, Map<String, bool>>();
-
-    taskMap.putIfAbsent("listeTaches", () => liste_checkbox);
-
-    print("ma task map " + taskMap.entries.toString());
-    */
-    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo, "TodoCheckbox" : liste_checkbox};
-
-    //documentReference.set(todos).whenComplete(() => print("$nomTodo created"));
-
+    Map<String, Object> todos = {
+      "TodoTitle": nomTodo,
+      "TododescTodo": descTodo,
+      "TodoDate": dateTodo,
+      "TodoImage": fileName,
+      "TodoColor": colorTodo,
+      "TodoCheckbox": liste_checkbox
+    };
     db.add(todos);
-    liste_checkbox.clear();
   }
 
-  createTodosWithPicture(){
-    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo};
+  createTodosWithPicture() {
+    Map<String, Object> todos = {
+      "TodoTitle": nomTodo,
+      "TododescTodo": descTodo,
+      "TodoDate": dateTodo,
+      "TodoImage": fileName,
+      "TodoColor": colorTodo
+    };
     db.add(todos);
     fileName = "";
   }
 
-  deleteTodos(String toDoToDelete){
+  deleteTodos(String toDoToDelete) {
     db.doc(toDoToDelete).delete();
   }
 
@@ -131,52 +178,75 @@ class _AppTODOState extends State<AppTODO> {
     final Storage storage = Storage();
     return Scaffold(
       appBar: AppBar(
-        title: Text("Mes TODOs")
+        //title: Text("Mes TODOs")
+        title: Container(
+            width: double.infinity,
+            height: 40,
+            decoration: BoxDecoration(
+                color: Colors.white, borderRadius: BorderRadius.circular(5)),
+            child: Center(
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                      prefixIcon: Icon(Icons.search),
+                      suffixIcon: IconButton(
+                        icon: Icon(Icons.clear),
+                        onPressed: () {
+                          /* Clear the search field */
+                        },
+                      ),
+                      hintText: 'Search...',
+                      border: InputBorder.none),
+                )
+            )
+
+        ),
       ),
       floatingActionButton: SpeedDial(
         animatedIcon: AnimatedIcons.menu_close,
         children: [
           SpeedDialChild(
-            child: Icon(Icons.add),
-            label: ('Todo'),
-            onTap: () =>
-                showDialog(
-                  context: context,
-                  builder: (BuildContext context){
-                    return AlertDialog(
-                      title: Text("Ajouter une TODO"),
-                      content: Form(child: Column(
-                        children: <Widget> [
-                          TextFormField(
-                            onChanged: (String value){
-                              nomTodo = value;
-                            },
-                            decoration: InputDecoration(hintText: "Titre"),
-                          ),
-                          TextFormField(
-                            onChanged: (String value){
-                              descTodo = value;
-                            },
-                            decoration: InputDecoration(hintText: "Description"),
-                          ),
-                          ElevatedButton(
-                            onPressed: () => _selectDate(context),
-                            child: Text("Choose Date"),
-                          ),
-                          Text("${dateTodo}".split(' ')[0]),
-                        ],
-                      ),),
-                      actions: <Widget>[
-                        TextButton(
-                            onPressed: (){
-                              createTodos();
-                              Navigator.of(context).pop();
-                            },
-                            child: Text("Ajouter"))
-                      ],
-                    );
-                  }
-                )
+              child: Icon(Icons.add),
+              label: ('Todo'),
+              onTap: () =>
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: Text("Ajouter une TODO"),
+                          content: Form(child: Column(
+                            children: <Widget>[
+                              TextFormField(
+                                onChanged: (String value) {
+                                  nomTodo = value;
+                                },
+                                decoration: InputDecoration(hintText: "Titre"),
+                              ),
+                              TextFormField(
+                                onChanged: (String value) {
+                                  descTodo = value;
+                                },
+                                decoration: InputDecoration(
+                                    hintText: "Description"),
+                              ),
+                              ElevatedButton(
+                                onPressed: () => _selectDate(context),
+                                child: Text("Choose Date"),
+                              ),
+                              Text("${dateTodo}".split(' ')[0]),
+                            ],
+                          ),),
+                          actions: <Widget>[
+                            TextButton(
+                                onPressed: () {
+                                  createTodos();
+                                  Navigator.of(context).pop();
+                                },
+                                child: Text("Ajouter"))
+                          ],
+                        );
+                      }
+                  )
           ),
           SpeedDialChild(
               child: Icon(Icons.add_a_photo),
@@ -184,35 +254,37 @@ class _AppTODOState extends State<AppTODO> {
               onTap: () =>
                   showDialog(
                       context: context,
-                      builder: (BuildContext context){
+                      builder: (BuildContext context) {
                         return AlertDialog(
                           title: Text("Ajouter une TODO"),
                           content: Form(child: Column(
-                            children: <Widget> [
+                            children: <Widget>[
                               TextFormField(
-                                onChanged: (String value){
+                                onChanged: (String value) {
                                   nomTodo = value;
                                 },
                                 decoration: InputDecoration(hintText: "Titre"),
                               ),
                               TextFormField(
-                                onChanged: (String value){
+                                onChanged: (String value) {
                                   descTodo = value;
                                 },
-                                decoration: InputDecoration(hintText: "Description"),
+                                decoration: InputDecoration(
+                                    hintText: "Description"),
                               ),
                               ElevatedButton(
                                 onPressed: () async {
-                                  final result = await FilePicker.platform.pickFiles(
+                                  final result = await FilePicker.platform
+                                      .pickFiles(
                                     allowMultiple: false,
-                                    type:FileType.custom,
+                                    type: FileType.custom,
                                     allowedExtensions: ['png', 'jpg'],
                                   );
 
-                                  if(result == null){
+                                  if (result == null) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                          content:Text("Pas de fichier !")
+                                          content: Text("Pas de fichier !")
                                       ),
                                     );
                                     return null;
@@ -220,12 +292,10 @@ class _AppTODOState extends State<AppTODO> {
 
                                   final path = result.files.single.path!;
                                   fileName = result.files.single.name;
-                                  
+
                                   storage
                                       .uploadFile(path, fileName)
                                       .then((value) => print('Image ajoutée'));
-
-
                                 },
                                 child: Text("Choisir une image"),
                               ),
@@ -233,7 +303,7 @@ class _AppTODOState extends State<AppTODO> {
                           ),),
                           actions: <Widget>[
                             TextButton(
-                                onPressed: (){
+                                onPressed: () {
                                   createTodosWithPicture();
 
                                   Navigator.of(context).pop();
@@ -250,22 +320,23 @@ class _AppTODOState extends State<AppTODO> {
               onTap: () =>
                   showDialog(
                       context: context,
-                      builder: (BuildContext context){
+                      builder: (BuildContext context) {
                         return AlertDialog(
                           title: Text("Ajouter une TODO"),
                           content: Form(child: Column(
-                            children: <Widget> [
+                            children: <Widget>[
                               TextFormField(
-                                onChanged: (String value){
+                                onChanged: (String value) {
                                   nomTodo = value;
                                 },
                                 decoration: InputDecoration(hintText: "Titre"),
                               ),
                               TextFormField(
-                                onChanged: (String value){
+                                onChanged: (String value) {
                                   descTodo = value;
                                 },
-                                decoration: InputDecoration(hintText: "Description"),
+                                decoration: InputDecoration(
+                                    hintText: "Description"),
                               ),
                               ElevatedButton(
                                 onPressed: () => _selectDate(context),
@@ -284,13 +355,15 @@ class _AppTODOState extends State<AppTODO> {
                                   alignment: AlignmentDirectional.topEnd,
                                   children: [
                                     TextFormField(
-                                        controller: _controller,
-                                        onChanged: (String value){
+                                      controller: _controller,
+                                      onChanged: (String value) {
                                         listElement = value;
                                       },
-                                      decoration: InputDecoration(hintText: "Élément de liste"),
+                                      decoration: InputDecoration(
+                                          hintText: "Élément de liste"),
                                     ),
-                                    IconButton(onPressed: ajouterElementListe, icon: Icon(Icons.add))
+                                    IconButton(onPressed: ajouterElementListe,
+                                        icon: Icon(Icons.add))
                                   ],
                                 ),
                               ),
@@ -310,7 +383,7 @@ class _AppTODOState extends State<AppTODO> {
                           ),
                           actions: <Widget>[
                             TextButton(
-                                onPressed: (){
+                                onPressed: () {
                                   createTodos();
                                   Navigator.of(context).pop();
                                 },
@@ -322,85 +395,111 @@ class _AppTODOState extends State<AppTODO> {
           ),
         ],
       ),
-
       body: StreamBuilder(
           stream: db.snapshots(),
-          builder: (context, AsyncSnapshot snapshots){
-        if(snapshots.hasData){
-          return ListView.builder(
-              itemCount : snapshots.data?.docs.length,
-              itemBuilder: (context, index) {
-                DocumentSnapshot documentSnapshot = snapshots.data.docs[index];
+          builder: (context, AsyncSnapshot snapshots) {
+            _allResults.clear();
+            if (snapshots.hasData) {
+              return ListView.builder(
+                  controller: _actualiserListe,
+                  itemCount: snapshots.data?.docs.length,
+                  itemBuilder: (context, index) {
+                    DocumentSnapshot documentSnapshot = snapshots.data
+                        .docs[index];
 
-                String id = documentSnapshot.reference.id;
+                    _allResults.add(documentSnapshot["TodoTitle"]);
 
-                List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
-                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"], documentSnapshot["TodoDate"], documentSnapshot["TodoCheckbox"]));
+                    String id = documentSnapshot.reference.id;
 
-                String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
+                    List<TodoDataModel> todoData = List.generate(
+                        snapshots.data?.docs.length, (index) =>
+                        TodoDataModel(
+                            id,
+                            documentSnapshot["TodoTitle"],
+                            documentSnapshot["TododescTodo"],
+                            documentSnapshot["TodoImage"],
+                            documentSnapshot["TodoColor"],
+                            documentSnapshot["TodoDate"],
+                            documentSnapshot["TodoCheckbox"]));
 
-                return SizedBox (
-                    width: 50,
-                    child :Card(
-                      color: Color(int.parse(couleurString)),
-                      child:InkWell(
-                        onTap: (){
-                          Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index], couleurChoisie: documentSnapshot["TodoColor"])));
-                        },
-                        child: Column(
-                            children: <Widget>[
-                              FutureBuilder(
-                                future: storage.getImageURL(documentSnapshot["TodoImage"]),
-                                builder: (BuildContext context, AsyncSnapshot<String> snapshot){
+                    String couleurString = documentSnapshot["TodoColor"]; //"0xFF" +
 
-                                  if(snapshot.data != "" && snapshot.data != null){
+                    print("TODO TITLE :" + documentSnapshot["TodoTitle"]);
 
-                                    return Container(
-                                      width: 500,
-                                      height: 200,
-                                      child:
-                                      Image.network(
-                                        //snapshot.data!,
-                                        snapshot.data!,
-                                        fit: BoxFit.contain,
-                                      ),
-                                    );
-                                  }else{
-                                    return SizedBox.shrink();
-                                  }
-                                }
-                              ),
-                              ListTile(
-                                  title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
-                                  subtitle: Text(formatDate(documentSnapshot["TodoDate"].toDate(), [dd, ".", mm, ".", yyyy, " " , hh, ":", nn])),
-                                trailing: IconButton(
-                                    icon: Icon(
-                                      Icons.delete,
-                                    ),
-                                    onPressed: (){
-                                      setState(() {
-                                        //todos.removeAt(index);
-                                        //todo le remove avec la firebase
-                                        deleteTodos(id);
-                                      });
-                                    }
-                                ),
+                    if (_todoAAffiches.contains(
+                        documentSnapshot["TodoTitle"]) /* || _todoAAffiches.isEmpty*/) {
+                      return SizedBox(
+                          width: 50,
+                          child: Card(
+                              color: Color(int.parse(couleurString)),
+                              child: InkWell(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(builder: (Context) =>
+                                            TodoDetail(
+                                                todoDataModel: todoData[index],
+                                                couleurChoisie: documentSnapshot["TodoColor"])));
+                                  },
+                                  child: Column(
+                                      children: <Widget>[
+                                        FutureBuilder(
+                                            future: storage.getImageURL(
+                                                documentSnapshot["TodoImage"]),
+                                            builder: (BuildContext context,
+                                                AsyncSnapshot<
+                                                    String> snapshot) {
+                                              if (snapshot.data != "" &&
+                                                  snapshot.data != null) {
+                                                return Container(
+                                                  width: 500,
+                                                  height: 200,
+                                                  child:
+                                                  Image.network(
+                                                    //snapshot.data!,
+                                                    snapshot.data!,
+                                                    fit: BoxFit.contain,
+                                                  ),
+                                                );
+                                              } else {
+                                                return SizedBox.shrink();
+                                              }
+                                            }
+                                        ),
+                                        ListTile(
+                                          title: Text(
+                                              documentSnapshot["TodoTitle"]),
+                                          //documentSnapshot["TodoTitle"]
+                                          subtitle: Text(formatDate(documentSnapshot["TodoDate"].toDate(), [dd, ".", mm, ".", yyyy, " " , hh, ":", nn])),
+                                          trailing: IconButton(
+                                              icon: Icon(
+                                                Icons.delete,
+                                              ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  //todos.removeAt(index);
+                                                  //todo le remove avec la firebase
+                                                  deleteTodos(id);
+                                                });
+                                              }
+                                          ),
+                                        )
+                                      ]
+                                  )
                               )
-                            ]
-                        )
-                    )
-                    )
-                );
-
-              });
-          }else{
-          return Text(
-            'No Data...',
-          );
-        }
-
-    }
-    ),
-      );
+                          )
+                      );
+                    } else {
+                      return Text("Pas de todo correspondantes");
+                      //return SizedBox.shrink();
+                    }
+                  });
+            } else {
+              return Text(
+                'No Data...',
+              );
+            }
+          }
+      ),
+    );
   }
 }

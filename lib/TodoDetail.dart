@@ -183,7 +183,6 @@ class _TodoDetailState extends State<TodoDetail> {
           focusColor: Colors.green,
           onPressed: () => updateTodo(newDescription),
           child: Icon(Icons.save)
-
       ),
     );
   }
