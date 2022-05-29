@@ -97,42 +97,11 @@ class _AppTODOState extends State<AppTODO> {
     monTag = "";
   }
 
-  /*getTodosStreamSnapshot() async {
-
-  }*/
-
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? selected = await showDatePicker(
-      context: context,
-      initialDate: dateTodo,
-      firstDate: DateTime(2010),
-      lastDate: DateTime(2025),
-    );
-
-    if (selected != null) { // && selected != dateTodo
-      dateTodo = selected;
-      print(dateTodo);
-    }
-  }
-
-  Future<void> _selectTime(BuildContext context) async {
-    final TimeOfDay? picked = await showTimePicker(
-      context: context,
-      initialTime: TimeOfDay.now(),
-    );
-    if (picked != null)
-      timeTodo = picked;
-    dateTodo = new DateTime(
-        dateTodo.year, dateTodo.month, dateTodo.day, timeTodo.hour,
-        timeTodo.minute);
-  }
-
-  void ajouterElementListeCheckbox() {
+   void ajouterElementListeCheckbox() {
     liste_checkbox.addEntries([MapEntry(listElement, false)]);
     _controller.clear();
     listElement = "";
 
-    print("Ma map ---------------->" + liste_checkbox.keys.toString());
   }
 
   searchResultList() {
@@ -210,10 +179,35 @@ class _AppTODOState extends State<AppTODO> {
                               decoration: InputDecoration(hintText: "Description"),
                             ),
                             ElevatedButton(
-                              onPressed: () => setState(() => _selectDate(context)),
-                              child: Text("Choose Date"),
+                              onPressed: () async{
+                                DateTime? newDate = await showDatePicker(
+                                  context: context,
+                                  initialDate: dateTodo,
+                                  firstDate: DateTime(2010),
+                                  lastDate: DateTime(2025),
+                                );
+
+                                if(newDate == null) return;
+                                setState(() => dateTodo = newDate);
+                              },
+                              child: Text("Choisir une date"),
                             ),
-                            Text("${dateTodo}".split(' ')[0]),
+                            Text("${dateTodo.toLocal()}".split(' ')[0]),
+                            ElevatedButton(
+                              onPressed: () async{
+                                TimeOfDay? newTime = await showTimePicker(
+                                  context: context,
+                                  initialTime: TimeOfDay.now(),
+                                );
+
+                                if(newTime == null) return;
+                                setState(() => dateTodo = new DateTime(
+                                    dateTodo.year, dateTodo.month, dateTodo.day, newTime.hour,
+                                    newTime.minute));
+                              },
+                              child: Text("Choisir une heure"),
+                            ),
+                            Text(dateTodo.hour.toString() + ":" + dateTodo.minute.toString()),
 
                             Container(
                               child:
@@ -309,6 +303,36 @@ class _AppTODOState extends State<AppTODO> {
                                 },
                                 decoration: InputDecoration(hintText: "Description"),
                               ),
+                                ElevatedButton(
+                                  onPressed: () async{
+                                    DateTime? newDate = await showDatePicker(
+                                      context: context,
+                                      initialDate: dateTodo,
+                                      firstDate: DateTime(2010),
+                                      lastDate: DateTime(2025),
+                                    );
+
+                                    if(newDate == null) return;
+                                    setState(() => dateTodo = newDate);
+                                  },
+                                  child: Text("Choisir une date"),
+                                ),
+                                Text("${dateTodo.toLocal()}".split(' ')[0]),
+                                ElevatedButton(
+                                  onPressed: () async{
+                                    TimeOfDay? newTime = await showTimePicker(
+                                      context: context,
+                                      initialTime: TimeOfDay.now(),
+                                    );
+
+                                    if(newTime == null) return;
+                                    setState(() => dateTodo = new DateTime(
+                                        dateTodo.year, dateTodo.month, dateTodo.day, newTime.hour,
+                                        newTime.minute));
+                                  },
+                                  child: Text("Choisir une heure"),
+                                ),
+                                Text(dateTodo.hour.toString() + ":" + dateTodo.minute.toString()),
                               ElevatedButton(
                                 onPressed: () async {
                                   final result = await FilePicker.platform.pickFiles(
@@ -359,6 +383,8 @@ class _AppTODOState extends State<AppTODO> {
                   showDialog(
                       context: context,
                       builder: (BuildContext context) {
+                        return StatefulBuilder(
+                          builder: (context, setState){
                         return AlertDialog(
                           title: Text("Ajouter une TODO"),
                           content: Form(child: Column(
@@ -377,15 +403,35 @@ class _AppTODOState extends State<AppTODO> {
                                     hintText: "Description"),
                               ),
                               ElevatedButton(
-                                onPressed: () => _selectDate(context),
+                                onPressed: () async{
+                                  DateTime? newDate = await showDatePicker(
+                                      context: context,
+                                      initialDate: dateTodo,
+                                      firstDate: DateTime(2010),
+                                      lastDate: DateTime(2025),
+                                  );
+
+                                  if(newDate == null) return;
+                                  setState(() => dateTodo = newDate);
+                                },
                                 child: Text("Choisir une date"),
                               ),
-                              Text("${dateTodo}".split(' ')[0]),
+                              Text("${dateTodo.toLocal()}".split(' ')[0]),
                               ElevatedButton(
-                                onPressed: () => _selectTime(context),
-                                child: Text("Choisir l'heure"),
+                                onPressed: () async{
+                                  TimeOfDay? newTime = await showTimePicker(
+                                    context: context,
+                                    initialTime: TimeOfDay.now(),
+                                  );
+
+                                  if(newTime == null) return;
+                                  setState(() => dateTodo = new DateTime(
+                                      dateTodo.year, dateTodo.month, dateTodo.day, newTime.hour,
+                                      newTime.minute));
+                                },
+                                child: Text("Choisir une heure"),
                               ),
-                              Text(timeTodo.toString()),
+                              Text(dateTodo.hour.toString() + ":" + dateTodo.minute.toString()),
                               Container(
                                 child:
                                 Stack(
@@ -400,22 +446,30 @@ class _AppTODOState extends State<AppTODO> {
                                       decoration: InputDecoration(
                                           hintText: "Élément de liste"),
                                     ),
-                                    IconButton(onPressed: ajouterElementListeCheckbox,
+                                    IconButton(
+                                        onPressed: (){
+                                          setState(() {
+                                            ajouterElementListeCheckbox();
+                                          });
+                                        },
                                         icon: Icon(Icons.add))
                                   ],
                                 ),
                               ),
-                              /*
-                              ListView.builder(
-                                  itemCount: liste_checkbox.length,
-                                  itemBuilder: (context, index) {
+                              Container(
+                                  margin: const EdgeInsets.only(top: 15.0),
+                                  child: Wrap( direction: Axis.horizontal, alignment: WrapAlignment.start,
+                                    children: [
+                                      for(var v in liste_checkbox.keys) Container(
+                                          child: Row(children:[
+                                            Text(" " + v.toString())
+                                          ])
 
-                                    List<String> checkBoxElements = liste_checkbox.keys.toList();
+                                      )
 
-                                    return Text("checkBoxElements[index]");
-                                  }
-                              )
-                              */
+                                    ],
+                                  )
+                              ),
                             ],
                           ),
                           ),
@@ -428,6 +482,7 @@ class _AppTODOState extends State<AppTODO> {
                                 child: Text("Ajouter"))
                           ],
                         );
+                        });
                       }
                   )
           ),
