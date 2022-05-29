@@ -615,7 +615,7 @@ class _AppTODOState extends State<AppTODO> {
 
                 String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
 
-                if(_todoAAffiches.isEmpty && _searchController.text == ""){
+                if(/*_todoAAffiches.isEmpty &&*/ _searchController.text == ""){
                   show = true;
                 }else{
                   show = false;
