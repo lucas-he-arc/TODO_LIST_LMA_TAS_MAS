@@ -70,6 +70,8 @@ class _AppTODOState extends State<AppTODO> {
   List _allResults = [];
   List _todoAAffiches = [];
 
+  Map<String, List<String>> _allResultsTag = new Map();
+
   @override
   void initState() {
     super.initState();
@@ -86,8 +88,8 @@ class _AppTODOState extends State<AppTODO> {
   }
 
   _onSearchChanged() {
-    print(_searchController.text);
-    print(_allResults);
+    //print(_searchController.text);
+    //print(_allResults);
     searchResultList();
   }
 
@@ -113,6 +115,15 @@ class _AppTODOState extends State<AppTODO> {
           //print(_todoAAffiches);
         }
       }
+
+      _allResultsTag.forEach((key, value) {
+        for(String everyTag in value){
+
+          if(everyTag.toLowerCase().contains(_searchController.text)) {
+            _todoAAffiches.add(key);
+          }
+        }
+      });
     }else{
       _todoAAffiches.addAll(_allResults);
     }
@@ -125,18 +136,40 @@ class _AppTODOState extends State<AppTODO> {
     //map
     Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo,"TodoCheckbox": liste_checkbox, "tags" : tags};
     db.add(todos);
-    tags.clear();
+
     _allResults.add(nomTodo);
+
+    List<String> tagList = [];
+
+    for(String tag in tags){
+      tagList.add(tag);
+    }
+
+    _allResultsTag.putIfAbsent(nomTodo, () => tagList);
+
+    tagList = [];
     liste_checkbox.clear();
+    tags.clear();
   }
 
   createTodosWithPicture(){
     Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo,"TodoCheckbox": liste_checkbox, "tags" : tags};
     db.add(todos);
-    tags.clear();
+
     fileName = "";
     _allResults.add(nomTodo);
+
+    List<String> tagList = [];
+
+    for(String tag in tags){
+      tagList.add(tag);
+    }
+
+    _allResultsTag.putIfAbsent(nomTodo, () => tagList);
+    tagList = [];
+
     liste_checkbox.clear();
+    tags.clear();
   }
 
   deleteTodos(String toDoToDelete) {
@@ -513,20 +546,29 @@ class _AppTODOState extends State<AppTODO> {
 
                               _allResults.add(documentSnapshot["TodoTitle"]);
 
+                              List<String> tagList = [];
+
+                              for(String tag in documentSnapshot["tags"]){
+                                tagList.add(tag);
+                              }
+
+                              _allResultsTag.putIfAbsent(documentSnapshot["TodoTitle"], () => tagList);
+                              tagList = [];
+
                               String id = documentSnapshot.reference.id;
 
                 List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
                     TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"],documentSnapshot["TodoDate"] ,documentSnapshot["TodoCheckbox"], documentSnapshot["tags"]));
 
-                              String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
+                String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
 
-                              if(_todoAAffiches.isEmpty && _searchController.text == ""){
-                                show = true;
-                              }else{
-                                show = false;
-                              }
+                if(_todoAAffiches.isEmpty && _searchController.text == ""){
+                  show = true;
+                }else{
+                  show = false;
+                }
+
                 if(documentSnapshot["TodoTitle"] != "xxx"){
-
                   if(_todoAAffiches.contains(documentSnapshot["TodoTitle"]) || show){
                     return SizedBox (
                         width: 50,
