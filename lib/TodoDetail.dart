@@ -53,6 +53,11 @@ class _TodoDetailState extends State<TodoDetail> {
     FirebaseFirestore.instance.collection("MesTodos").doc(widget.todoDataModel.id).update({"TodoCheckbox" : widget.todoDataModel.checkbox});
   }
 
+  void supprimerTag(String value){
+    widget.todoDataModel.tags.remove(value);
+    FirebaseFirestore.instance.collection("MesTodos").doc(widget.todoDataModel.id).update({"tags" : widget.todoDataModel.tags});
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -119,7 +124,7 @@ class _TodoDetailState extends State<TodoDetail> {
 
                     ),
                     Container(
-                        margin: const EdgeInsets.only(top: 15.0),
+                        margin: const EdgeInsets.all(15.0),
                         child: Row(
                           children: [
                             for (var tag in widget.todoDataModel.tags) Container(
@@ -134,7 +139,14 @@ class _TodoDetailState extends State<TodoDetail> {
                                     color: Colors.amberAccent,
                                     size: 25.0,
                                   ),
-                                  Text(tag, style: TextStyle(fontSize: 15.0, color: Colors.white))
+                                  Text(tag, style: TextStyle(fontSize: 15.0, color: Colors.white)),
+                                  IconButton(icon: Icon(Icons.delete),
+                                      onPressed: (){
+                                        setState(() {
+                                          supprimerTag(tag);
+                                        });
+                                      }
+                                  )
                                 ],)
                             )
                           ],
