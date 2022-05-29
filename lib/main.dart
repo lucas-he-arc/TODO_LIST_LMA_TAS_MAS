@@ -472,6 +472,59 @@ class _AppTODOState extends State<AppTODO> {
                                   alignment: AlignmentDirectional.topEnd,
                                   children: [
                                     TextFormField(
+                                      controller: _controllerTag,
+                                      onChanged: (String value){
+                                        monTag = value;
+                                      },
+                                      decoration: InputDecoration(hintText: "Tag"),
+                                    ),
+                                    IconButton(icon: Icon(Icons.add),
+                                        onPressed: (){
+                                          setState(() {
+                                            ajouterElementListe();
+                                          });
+                                        }
+                                    )
+                                  ],
+                                ),
+                              ),
+                              Container(
+                                  margin: const EdgeInsets.only(top: 15.0),
+                                  child: Wrap( direction: Axis.horizontal, alignment: WrapAlignment.start,
+                                    children: [
+                                      for (var tag in tags) Container(
+                                          decoration: BoxDecoration(
+                                              color: Colors.teal,
+                                              borderRadius: BorderRadius.circular(100.0)),
+                                          padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
+                                          margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
+                                          child: Wrap (children:[
+                                            const Icon(
+                                              Icons.local_offer_outlined,
+                                              color: Colors.amberAccent,
+                                              size: 20.0,
+                                            ),
+                                            Text(" " + tag, style: const TextStyle(fontSize: 15.0, color: Colors.white))
+                                          ],)
+                                      )
+                                      //margin: const EdgeInsets.only(right: 15.0),
+                                    ],
+                                  )
+                              ),
+                              IconButton(icon: Icon(Icons.delete_rounded),
+                                  onPressed: (){
+                                    setState(() {
+                                      tags.clear();
+                                    });
+                                  }
+                              ),
+                              Container(
+                                child:
+                                Stack(
+                                  fit: StackFit.loose,
+                                  alignment: AlignmentDirectional.topEnd,
+                                  children: [
+                                    TextFormField(
                                       controller: _controller,
                                       onChanged: (String value) {
                                         listElement = value;
