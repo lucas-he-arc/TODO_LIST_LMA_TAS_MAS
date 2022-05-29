@@ -148,7 +148,7 @@ class _AppTODOState extends State<AppTODO> {
       _todoAAffiches.addAll(_allResults);
     }
 
-    db.doc("temp").set({"TodoTitle" : "xxx", "TododescTodo" : "xxx", "TodoDate" : dateTodo, "TodoImage" : "xx", "TodoColor" : colorTodo});
+    db.doc("temp").set({"TodoTitle" : "xxx", "TododescTodo" : "xxx", "TodoDate" : dateTodo, "TodoImage" : "xx", "TodoColor" : colorTodo, "TodoCheckbox" : {}, "tags" : []});
     db.doc("temp").delete();
   }
 
@@ -158,14 +158,16 @@ class _AppTODOState extends State<AppTODO> {
     db.add(todos);
     tags.clear();
     _allResults.add(nomTodo);
+    liste_checkbox.clear();
   }
 
   createTodosWithPicture(){
-    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo, "tags" : tags};
+    Map<String,Object> todos = {"TodoTitle" : nomTodo, "TododescTodo" : descTodo, "TodoDate" : dateTodo, "TodoImage" : fileName, "TodoColor" : colorTodo,"TodoCheckbox": liste_checkbox, "tags" : tags};
     db.add(todos);
     tags.clear();
     fileName = "";
     _allResults.add(nomTodo);
+    liste_checkbox.clear();
   }
 
   deleteTodos(String toDoToDelete) {
@@ -459,7 +461,7 @@ class _AppTODOState extends State<AppTODO> {
                               String id = documentSnapshot.reference.id;
 
                 List<TodoDataModel> todoData = List.generate(snapshots.data?.docs.length, (index) =>
-                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"],documentSnapshot["TodoCheckbox"], documentSnapshot["tags"]));
+                    TodoDataModel(id,documentSnapshot["TodoTitle"],documentSnapshot["TododescTodo"], documentSnapshot["TodoImage"], documentSnapshot["TodoColor"],documentSnapshot["TodoDate"] ,documentSnapshot["TodoCheckbox"], documentSnapshot["tags"]));
 
                               String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
 
@@ -468,94 +470,101 @@ class _AppTODOState extends State<AppTODO> {
                               }else{
                                 show = false;
                               }
+                if(documentSnapshot["TodoTitle"] != "xxx"){
 
-                if(_todoAAffiches.contains(documentSnapshot["TodoTitle"]) || show){
-                  return SizedBox (
-                      width: 50,
-                      child :Card(
-                          color: Color(int.parse(couleurString)),
-                          child:InkWell(
-                              onTap: (){
-                                Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index],couleurChoisie: documentSnapshot["TodoColor"])));
-                              },
-                              child: Column(
-                                  children: <Widget>[
-                                    FutureBuilder(
-                                        future: storage.getImageURL(documentSnapshot["TodoImage"]),
-                                        builder: (BuildContext context, AsyncSnapshot<String> snapshot){
+                  if(_todoAAffiches.contains(documentSnapshot["TodoTitle"]) || show){
+                    return SizedBox (
+                        width: 50,
+                        child :Card(
+                            color: Color(int.parse(couleurString)),
+                            child:InkWell(
+                                onTap: (){
+                                  Navigator.of(context).push(MaterialPageRoute(builder: (Context)=>TodoDetail(todoDataModel: todoData[index],couleurChoisie: documentSnapshot["TodoColor"])));
+                                },
+                                child: Column(
+                                    children: <Widget>[
+                                      FutureBuilder(
+                                          future: storage.getImageURL(documentSnapshot["TodoImage"]),
+                                          builder: (BuildContext context, AsyncSnapshot<String> snapshot){
 
-                                            if(snapshot.data != "" && snapshot.data != null){
+                                              if(snapshot.data != "" && snapshot.data != null){
 
-                                            return Container(
-                                              width: 500,
-                                              height: 200,
-                                              child:
-                                              Image.network(
-                                                //snapshot.data!,
-                                                snapshot.data!,
-                                                fit: BoxFit.contain,
-                                              ),
-                                            );
-                                          }else{
-                                            return SizedBox.shrink();
-                                          }
-                                        }
-                                    ),
-                                    ListTile(
-                                      title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
-                                      subtitle: Text((documentSnapshot["TodoDate"].toDate().toString())),
-                                      trailing: IconButton(
-                                          icon: Icon(
-                                            Icons.delete,
-                                          ),
-                                          onPressed: (){
-                                            setState(() {
-                                              //todos.removeAt(index);
-                                              //todo le remove avec la firebase
-                                              deleteTodos(id);
-                                            });
+                                              return Container(
+                                                width: 500,
+                                                height: 200,
+                                                child:
+                                                Image.network(
+                                                  //snapshot.data!,
+                                                  snapshot.data!,
+                                                  fit: BoxFit.contain,
+                                                ),
+                                              );
+                                            }else{
+                                              return SizedBox.shrink();
+                                            }
                                           }
                                       ),
-                                    ),
-                                    Container(
-                                        margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 10.0),
-                                        child: Wrap(
-                                          children: [
-                                            for (var tag in documentSnapshot["tags"]) Container(
-                                                decoration: BoxDecoration(
-                                                    color: Colors.teal,
-                                                    borderRadius: BorderRadius.circular(100.0)),
-                                                padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
-                                                margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
-                                                child: Wrap (alignment: WrapAlignment.start, children:[
-                                                  const Icon(
-                                                    Icons.local_offer_outlined,
-                                                    color: Colors.amberAccent,
-                                                    size: 20.0,
-                                                  ),
-                                                  Text(" " + tag, style: const TextStyle(fontSize: 15.0, color: Colors.white))
-                                                ],)
-                                            )
-                                            //margin: const EdgeInsets.only(right: 15.0),
-                                          ],
-                                        )
-                                    ),
-                                  ]
-                              )
-                          )
-                      )
-                  );
+                                      ListTile(
+                                        title: Text(documentSnapshot["TodoTitle"]),//documentSnapshot["TodoTitle"]
+                                        subtitle: Text(formatDate(documentSnapshot["TodoDate"].toDate(), [dd, " ", MM, " ", yyyy, " " , hh, ":", nn]).toString()),
+                                        trailing: IconButton(
+                                            icon: Icon(
+                                              Icons.delete,
+                                            ),
+                                            onPressed: (){
+                                              setState(() {
+                                                //todos.removeAt(index);
+                                                //todo le remove avec la firebase
+                                                deleteTodos(id);
+                                              });
+                                            }
+                                        ),
+                                      ),
+                                      Container(
+                                          margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 10.0),
+                                          child: Wrap(
+                                            children: [
+                                              for (var tag in documentSnapshot["tags"]) Container(
+                                                  decoration: BoxDecoration(
+                                                      color: Colors.teal,
+                                                      borderRadius: BorderRadius.circular(100.0)),
+                                                  padding: const EdgeInsets.only(left: 8.0,right: 8.0, top: 5.0, bottom: 5.0),
+                                                  margin: const EdgeInsets.only(left: 5.0, right: 5.0, bottom: 5.0),
+                                                  child: Wrap (alignment: WrapAlignment.start, children:[
+                                                    const Icon(
+                                                      Icons.local_offer_outlined,
+                                                      color: Colors.amberAccent,
+                                                      size: 20.0,
+                                                    ),
+                                                    Text(" " + tag, style: const TextStyle(fontSize: 15.0, color: Colors.white))
+                                                  ],)
+                                              )
+                                              //margin: const EdgeInsets.only(right: 15.0),
+                                            ],
+                                          )
+                                      ),
+                                    ]
+                                )
+                            )
+                        )
+                    );
+                  }else{
+                    //return Text("Pas de todo correspondantes");
+                    return SizedBox.shrink();
+                  }
                 }else{
-                  //return Text("Pas de todo correspondantes");
                   return SizedBox.shrink();
                 }
                             });
+
                       }else{
                         return Text(
                           'No Data...',
                         );
                       }
+
                     }
+
                 ),
             )
           ],
