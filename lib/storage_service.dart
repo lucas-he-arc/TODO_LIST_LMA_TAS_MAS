@@ -3,6 +3,10 @@ import 'dart:io';
 import 'package:firebase_storage/firebase_storage.dart' as firebase_storage;
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
 
+/*
+* Author(s) : Lucas Martinez
+*/
+
 class Storage{
   final firebase_storage.FirebaseStorage storage = firebase_storage.FirebaseStorage.instance;
 

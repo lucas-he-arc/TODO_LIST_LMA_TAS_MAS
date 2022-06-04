@@ -43,6 +43,7 @@ dependencies:
   flutter_hsvcolor_picker: ^1.2.2
   date_format: ^2.0.6
   firebase_messaging: ^11.4.1
+  awesome_notifications: ^0.6.21
 
 dev_dependencies:
   flutter_test:

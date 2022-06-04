@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:todo_list_lma_tas_mas/storage_service.dart';
 
 class TodoDetail extends StatefulWidget {
-  //String taskName = "";
   final TodoDataModel todoDataModel;
 
   String couleurChoisie;
@@ -24,22 +23,16 @@ class _TodoDetailState extends State<TodoDetail> {
   var _controller = TextEditingController();
   var _controllerTag = TextEditingController();
 
-  //map firebase
+  /*
+* Author(s) : Téo Assunçao, Lucas Martinez
+*/
   updateTodo(String newDescription){
     FirebaseFirestore.instance.collection("MesTodos").doc(widget.todoDataModel.id).update({"TododescTodo" : newDescription});
-    //FirebaseFirestore.instance.collection("MesTodos").doc(todoDataModel.id).update({"TodoColor" : couleurChoisie});
-    //todoDataModel.color = couleurChoisie;
   }
 
-  addTask(String taskName){
-    DocumentReference documentReference =
-    FirebaseFirestore.instance.collection("MesTodos").doc(widget.todoDataModel.name);
-
-    //this.todoDataModel.values.putIfAbsent(taskName, () => false);
-
-    documentReference.set({"listeTaches": {taskName : false}}, SetOptions(merge: true));
-  }
-
+  /*
+* Author(s) :Lucas Martinez
+*/
   void ajouterElementListe(){
     if(listElement != ""){
       widget.todoDataModel.checkbox.addEntries([MapEntry(listElement, false)]);
@@ -50,6 +43,9 @@ class _TodoDetailState extends State<TodoDetail> {
     }
   }
 
+/*
+* Author(s) : Marc-Antoine Sudan
+*/
   void ajouterElementListeTag(){
     if(monTag != ""){
       widget.todoDataModel.tags.add(monTag);
@@ -59,34 +55,35 @@ class _TodoDetailState extends State<TodoDetail> {
       monTag = "";
     }
   }
-
+/*
+* Author(s) :Lucas Martinez
+*/
   void supprimerElementListe(String key){
     widget.todoDataModel.checkbox.remove(key);
     FirebaseFirestore.instance.collection("MesTodos").doc(widget.todoDataModel.id).update({"TodoCheckbox" : widget.todoDataModel.checkbox});
   }
-
+ /*
+* Author(s) : Marc-Antoine Sudan
+*/
   void supprimerTag(String value){
     widget.todoDataModel.tags.remove(value);
     FirebaseFirestore.instance.collection("MesTodos").doc(widget.todoDataModel.id).update({"tags" : widget.todoDataModel.tags});
   }
 
+
+  /*
+* Author(s) : Téo Assunçao, Lucas Martinez, Marc-Antoine Sudan
+*/
   @override
   Widget build(BuildContext context) {
 
     Map<String, dynamic> liste_checkbox = widget.todoDataModel.checkbox;
-    print("VALUUUUUUUES " + liste_checkbox.toString());
-
-
 
     var docRef = FirebaseFirestore.instance
         .collection('MesTodos').doc(widget.todoDataModel.id);
 
     docRef.get().then((value) => print(value.data()));
-    /*docRef.snapshots(includeMetadataChanges: true).listen((event) {
-      print(event.);
-    });*/
     String newDescription = widget.todoDataModel.desc;
-    //TODO - Parcourir les items de la firebase
     return Scaffold(
         resizeToAvoidBottomInset: false,
         appBar: AppBar(title: Text(widget.todoDataModel.name),),
@@ -101,7 +98,9 @@ class _TodoDetailState extends State<TodoDetail> {
                 color: Color(int.parse(widget.todoDataModel.color)),
                 child: Column(
                   children: <Widget>[
-
+                    /*
+                    * Author(s) : Téo Assunçao, Lucas Martinez
+                    */
                     FutureBuilder(
                         future: storage.getImageURL(widget.todoDataModel.image),
                         builder: (BuildContext context, AsyncSnapshot<String> snapshot){
@@ -113,7 +112,6 @@ class _TodoDetailState extends State<TodoDetail> {
                               height: 200,
                               child:
                               Image.network(
-                                //snapshot.data!,
                                 snapshot.data!,
                                 fit: BoxFit.contain,
                               ),
@@ -123,6 +121,9 @@ class _TodoDetailState extends State<TodoDetail> {
                           }
                         }
                     ),
+                    /*
+                    * Author(s) : Téo Assunçao
+                    */
                     TextFormField(
                       keyboardType: TextInputType.multiline,
                       maxLines: 4,
@@ -132,11 +133,15 @@ class _TodoDetailState extends State<TodoDetail> {
                       newDescription = value;
                     },
                     ),
-                    AboutListTile(
-                        child:
-                        Text(formatDate(widget.todoDataModel.date.toDate(), [dd, " ", MM, " ", yyyy, " " , hh, ":", nn]) ),
-
+                    /*
+                    * Author(s) : Lucas Martinez
+                    */
+                    ListTile(
+                      title: Text(formatDate(widget.todoDataModel.date.toDate(), [dd, " ", MM, " ", yyyy, " " , hh, ":", nn]) ),
                     ),
+                    /*
+                    * Author(s) : Marc-Antoine Sudan
+                    */
                     Container(
                         margin: const EdgeInsets.all(0.0),
                         child: Wrap(
@@ -170,6 +175,9 @@ class _TodoDetailState extends State<TodoDetail> {
                           ],
                         )
                     ),
+                    /*
+                    * Author(s) : Marc-Antoine Sudan
+                    */
                     Container(
                       child:
                       Stack(
@@ -191,6 +199,9 @@ class _TodoDetailState extends State<TodoDetail> {
                         ],
                       ),
                     ),
+                    /*
+                    * Author(s) : Marc-Antoine Sudan, Téo Assunçao
+                    */
                     IconButton(
                         icon: Icon(
                           Icons.color_lens,
@@ -199,6 +210,9 @@ class _TodoDetailState extends State<TodoDetail> {
                           pickColor(context);
                         },
                       ),
+                    /*
+                    * Author(s) : Lucas Martinez
+                    */
                     Container(
                       child:
                       Stack(
@@ -216,6 +230,9 @@ class _TodoDetailState extends State<TodoDetail> {
                         ],
                       ),
                     ),
+                    /*
+                    * Author(s) : Lucas Martinez
+                    */
                         Expanded(
                             flex: 2,
                             child:
@@ -227,7 +244,6 @@ class _TodoDetailState extends State<TodoDetail> {
                                       Icons.delete,
                                     ),
                                     onPressed: () {
-                                      print("MA NOUVELLE CLEEE " + key.toString());
                                       supprimerElementListe(key);
                                     },
                                   ),
@@ -252,6 +268,9 @@ class _TodoDetailState extends State<TodoDetail> {
               ));
           },
         ),
+      /*
+       * Author(s) : Téo Assunçao
+        */
         floatingActionButton: FloatingActionButton(
           focusColor: Colors.green,
           onPressed: () => updateTodo(newDescription),
@@ -260,7 +279,9 @@ class _TodoDetailState extends State<TodoDetail> {
     );
   }
 
-  //void buildColorPicker() => ColorPicker(onChanged: onChanged)
+  /*
+   * Author(s) : Marc-Antoine Sudan, Téo Assunçao
+   */
 void pickColor(BuildContext context) => showDialog(
     context: context,
     builder: (context) => AlertDialog(
@@ -279,26 +300,22 @@ void pickColor(BuildContext context) => showDialog(
                 )
               ]
           )
-
-
-
-        /*mainAxisSize: MainAxisSize.min,
-        children: [
-          buildColorPicker()
-        ],*/
       ),
     ));
-
+  /*
+   * Author(s) : Marc-Antoine Sudan, Téo Assunçao
+   */
   Widget buildColorPicker() => ColorPicker(
     onChanged: (value) {
-      //couleurChoisie = value.toString();
       var splitted = value.toString().split('(');
       widget.couleurChoisie = splitted[1].substring(0, splitted[1].length - 1);
     },
   );
 
+  /*
+   * Author(s) : Marc-Antoine Sudan, Téo Assunçao
+   */
   void changeColorOfCard() {
-    //FirebaseFirestore.instance.collection("MesTodos").doc(todoDataModel.id).update({"TodoColor" : couleurChoisie});
     FirebaseFirestore.instance.collection("MesTodos").doc(widget.todoDataModel.id).update({"TodoColor" : widget.couleurChoisie});
     widget.todoDataModel.color = widget.couleurChoisie;
   }
