@@ -121,8 +121,7 @@ class _AppTODOState extends State<AppTODO> {
       if (_searchController.text.toLowerCase() != "") {
         for (String uneTodo in _allResults) {
           if (uneTodo.toLowerCase().contains(_searchController.text.toLowerCase())) {
-            _todoAAffiches.add(uneTodo);
-            //print(_todoAAffiches);
+            _todoAAffiches.add(uneTodo.toLowerCase());
           }
         }
 
@@ -130,7 +129,7 @@ class _AppTODOState extends State<AppTODO> {
           for(String everyTag in value){
 
             if(everyTag.toLowerCase().contains(_searchController.text.toLowerCase())) {
-              _todoAAffiches.add(key);
+              _todoAAffiches.add(key.toLowerCase());
             }
           }
         });
@@ -206,13 +205,18 @@ class _AppTODOState extends State<AppTODO> {
 
                 String couleurString = documentSnapshot["TodoColor"];//"0xFF" +
 
-                if( _searchController.text == ""){
+                if(_searchController.text == ""){
                   show = true;
                 }else{
                   show = false;
                 }
 
+                print(_todoAAffiches);
+
+                print(documentSnapshot["TodoTitle"]);
+
                   if(_todoAAffiches.contains(documentSnapshot["TodoTitle"].toLowerCase()) || show){
+                    print("hello");
                     return SizedBox (
                         width: 50,
                         child :Card(
