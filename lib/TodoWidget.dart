@@ -84,6 +84,44 @@ class TodoWidget extends StatefulWidget {
     listElement = "";
   }
 
+  Container showTag(){
+    return Container(
+        margin: const EdgeInsets.only(
+            top: 15.0),
+        child: Wrap(direction: Axis.horizontal,
+          alignment: WrapAlignment.start,
+          children: [
+            for (var tag in tags) Container(
+                decoration: BoxDecoration(
+                    color: Colors.teal,
+                    borderRadius: BorderRadius
+                        .circular(100.0)),
+                padding: const EdgeInsets.only(
+                    left: 8.0,
+                    right: 8.0,
+                    top: 5.0,
+                    bottom: 5.0),
+                margin: const EdgeInsets.only(
+                    left: 5.0,
+                    right: 5.0,
+                    bottom: 5.0),
+                child: Wrap(children: [
+                  const Icon(
+                    Icons.local_offer_outlined,
+                    color: Colors.amberAccent,
+                    size: 20.0,
+                  ),
+                  Text(" " + tag,
+                      style: const TextStyle(
+                          fontSize: 15.0,
+                          color: Colors.white))
+                ],)
+            )
+            //margin: const EdgeInsets.only(right: 15.0),
+          ],
+        )
+    );
+  }
 
 
   SpeedDialChild buildSimpleTodo(BuildContext context) {
@@ -169,42 +207,7 @@ class TodoWidget extends StatefulWidget {
                                         ],
                                       ),
                                     ),
-                                    Container(
-                                        margin: const EdgeInsets.only(
-                                            top: 15.0),
-                                        child: Wrap(direction: Axis.horizontal,
-                                          alignment: WrapAlignment.start,
-                                          children: [
-                                            for (var tag in tags) Container(
-                                                decoration: BoxDecoration(
-                                                    color: Colors.teal,
-                                                    borderRadius: BorderRadius
-                                                        .circular(100.0)),
-                                                padding: const EdgeInsets.only(
-                                                    left: 8.0,
-                                                    right: 8.0,
-                                                    top: 5.0,
-                                                    bottom: 5.0),
-                                                margin: const EdgeInsets.only(
-                                                    left: 5.0,
-                                                    right: 5.0,
-                                                    bottom: 5.0),
-                                                child: Wrap(children: [
-                                                  const Icon(
-                                                    Icons.local_offer_outlined,
-                                                    color: Colors.amberAccent,
-                                                    size: 20.0,
-                                                  ),
-                                                  Text(" " + tag,
-                                                      style: const TextStyle(
-                                                          fontSize: 15.0,
-                                                          color: Colors.white))
-                                                ],)
-                                            )
-                                            //margin: const EdgeInsets.only(right: 15.0),
-                                          ],
-                                        )
-                                    ),
+                                    showTag(),
                                     IconButton(icon: Icon(Icons.delete_rounded),
                                         onPressed: () {
                                           setState(() {
@@ -346,42 +349,8 @@ class TodoWidget extends StatefulWidget {
                                         ],
                                       ),
                                     ),
-                                    Container(
-                                        margin: const EdgeInsets.only(
-                                            top: 15.0),
-                                        child: Wrap(direction: Axis.horizontal,
-                                          alignment: WrapAlignment.start,
-                                          children: [
-                                            for (var tag in tags) Container(
-                                                decoration: BoxDecoration(
-                                                    color: Colors.teal,
-                                                    borderRadius: BorderRadius
-                                                        .circular(100.0)),
-                                                padding: const EdgeInsets.only(
-                                                    left: 8.0,
-                                                    right: 8.0,
-                                                    top: 5.0,
-                                                    bottom: 5.0),
-                                                margin: const EdgeInsets.only(
-                                                    left: 5.0,
-                                                    right: 5.0,
-                                                    bottom: 5.0),
-                                                child: Wrap(children: [
-                                                  const Icon(
-                                                    Icons.local_offer_outlined,
-                                                    color: Colors.amberAccent,
-                                                    size: 20.0,
-                                                  ),
-                                                  Text(" " + tag,
-                                                      style: const TextStyle(
-                                                          fontSize: 15.0,
-                                                          color: Colors.white))
-                                                ],)
-                                            )
-                                            //margin: const EdgeInsets.only(right: 15.0),
-                                          ],
-                                        )
-                                    ),
+
+                                    showTag(),
                                     IconButton(icon: Icon(Icons.delete_rounded),
                                         onPressed: () {
                                           setState(() {
@@ -493,41 +462,7 @@ class TodoWidget extends StatefulWidget {
                                         ],
                                       ),
                                     ),
-                                    Container(
-                                        margin: const EdgeInsets.only(
-                                            top: 15.0),
-                                        child: Wrap(direction: Axis.horizontal,
-                                          alignment: WrapAlignment.start,
-                                          children: [
-                                            for (var tag in tags) Container(
-                                                decoration: BoxDecoration(
-                                                    color: Colors.teal,
-                                                    borderRadius: BorderRadius
-                                                        .circular(100.0)),
-                                                padding: const EdgeInsets.only(
-                                                    left: 8.0,
-                                                    right: 8.0,
-                                                    top: 5.0,
-                                                    bottom: 5.0),
-                                                margin: const EdgeInsets.only(
-                                                    left: 5.0,
-                                                    right: 5.0,
-                                                    bottom: 5.0),
-                                                child: Wrap(children: [
-                                                  const Icon(
-                                                    Icons.local_offer_outlined,
-                                                    color: Colors.amberAccent,
-                                                    size: 20.0,
-                                                  ),
-                                                  Text(" " + tag,
-                                                      style: const TextStyle(
-                                                          fontSize: 15.0,
-                                                          color: Colors.white))
-                                                ],)
-                                            )
-                                          ],
-                                        )
-                                    ),
+                                    showTag(),
                                     IconButton(icon: Icon(Icons.delete_rounded),
                                         onPressed: () {
                                           setState(() {
