@@ -31,6 +31,7 @@ void main() async {
 /*
 * Author(s) : Lucas
 */
+
   WidgetsFlutterBinding.ensureInitialized();
   //intialisation Firebase
   await Firebase.initializeApp(
@@ -46,6 +47,20 @@ void main() async {
     theme: ThemeData(brightness: Brightness.dark, primaryColor: Colors.red),
     home: AppTODO(),
   ));
+
+  AwesomeNotifications().initialize(
+    'resource://drawable/home',
+    [
+      NotificationChannel(
+        channelKey: 'basic_channel',
+        channelName: 'Basic Notifications',
+        defaultColor: Colors.teal,
+        importance: NotificationImportance.High,
+        channelShowBadge: true, channelDescription: '',
+      ),
+    ],
+  );
+
 }
 
 class AppTODO extends StatefulWidget {
@@ -239,6 +254,7 @@ class _AppTODOState extends State<AppTODO> {
                                             onPressed: (){
                                               setState(() {
                                                 deleteTodos(id);
+
                                               });
                                             }
                                         ),

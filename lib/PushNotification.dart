@@ -9,13 +9,13 @@ import 'utilities.dart';
 */
 
   Future<void> createReminderNotification(
-      NotificationWeekAndTime notificationSchedule) async {
+      NotificationWeekAndTime notificationSchedule, String nomTodo) async {
     await AwesomeNotifications().createNotification(
       content: NotificationContent(
         id: createUniqueId(),
         icon: "resource://drawable/google_keep_logo",
         channelKey: 'basic_channel',
-        title: 'Rappel pour ta todo',
+        title: 'Rappel pour ta todo : ' + nomTodo,
         body: 'N\'oublies toi de traiter cette Todo !',
         notificationLayout: NotificationLayout.Messaging,
       ),
